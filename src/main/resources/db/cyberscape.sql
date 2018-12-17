@@ -1,4 +1,6 @@
 CREATE TABLE characters(
   id UUID,
-  char_name VARCHAR(75)
+  user_id VARCHAR,
+# TODO: Skill trees
+# TODO: Persistent stats?
 );
