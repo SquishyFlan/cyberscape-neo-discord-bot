@@ -5,6 +5,25 @@ spring:
     url: jdbc:postgresql://localhost:5432/cyberscape
     username: cyberscape
     password: ENC(27u95JIGEtfR7TfXGnNV5yBz7AbWycu3FkvqevuQOb8=)
+  security:
+    oauth2:
+      client:
+        registration:
+          discord:
+            client-id: ENC(q8cA64F/gK7AhTPMTaC5U80l/7Xf59OZZTgXHToQxzQ=)
+            client-secret: ENC(WtWTNaMtAHwVvgUS/zmmasa6iT+iWylWvJ5WcDoIOvx34CsQL67/KF/l5n/aJdaM)
+            clientAuthenticationMethod: post
+            authorizationGrantType: authorization_code
+            scope:
+              - identify
+            redirectUriTemplate: "{baseUrl}/login/oauth2/code/discord"
+            clientName: Cyberscape Neo Discord Bot
+        provider:
+          discord:
+            authorizationUri: https://discordapp.com/api/oauth2/authorize
+            tokenUri: https://discordapp.com/api/oauth2/token
+            userInfoUri: https://discordapp.com/api/users/@me
+            usernameAttribute: username
 server:
   address: 127.0.0.1
   port: 8080

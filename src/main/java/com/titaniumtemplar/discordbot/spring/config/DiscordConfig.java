@@ -1,6 +1,7 @@
 package com.titaniumtemplar.discordbot.spring.config;
 
 import com.titaniumtemplar.discordbot.discord.Myra;
+import java.util.concurrent.ScheduledExecutorService;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import org.jooq.DSLContext;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static net.dv8tion.jda.core.AccountType.BOT;
 
 @Configuration
@@ -26,6 +28,10 @@ public class DiscordConfig {
 
   @Bean
   Myra myra(DSLContext dslContext) {
-    return new Myra(dslContext);
+    ScheduledExecutorService combatThreadPool = newScheduledThreadPool(
+        1,
+        (f) -> new Thread(f, "CombatThread"));
+
+    return new Myra(dslContext, combatThreadPool);
   }
 }
