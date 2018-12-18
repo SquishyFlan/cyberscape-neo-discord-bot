@@ -1,0 +1,42 @@
+#main {
+  font-size: 20px;
+}
+
+.hidden {
+  display: none;
+}
+
+#name {
+  float: left;
+  font-weight: bold;
+  padding-right: 3em;
+}
+
+.section {
+  border-bottom: 1px solid #eee;
+  padding: 15px;
+}
+
+.inputSet {
+  padding: 2px 0;
+}
+
+.inputSet label {
+  font-weight: bold;
+  width: 250px;
+  display: inline-block;
+  text-align: right;
+}
+
+#editor {
+  padding: 15px 0;
+}
+
+#embedText {
+  width: 500px;
+  height: 500px;
+}
+
+.skillCluster {
+  font-weight: bold;
+}

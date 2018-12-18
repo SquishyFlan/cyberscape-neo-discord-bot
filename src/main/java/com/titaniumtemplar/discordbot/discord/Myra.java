@@ -53,8 +53,8 @@ public class Myra extends ListenerAdapter {
   //<editor-fold defaultstate="collapsed" desc="Static fields">
   private static final int COMBAT_ROUND_SECONDS = 30;
   private static final int COMBAT_END_COOLDOWN = 120;
-  private static final int COMBAT_WAIT_LOWER = 3;
-  private static final int COMBAT_WAIT_UPPER = 10;
+  private static final int COMBAT_WAIT_LOWER = 300;
+  private static final int COMBAT_WAIT_UPPER = 3600;
   private static final Random RAND = new Random();
 //</editor-fold>
 
