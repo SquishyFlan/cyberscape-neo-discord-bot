@@ -28,6 +28,8 @@ server:
   address: 127.0.0.1
   port: 8080
   useForwardHeaders: true
+  servlet:
+    context-path: /game
 discord:
   token: ENC(4Mxyeed8sDnvO0FVeTLboz3mrFsP3Bw0qBHdXvTXa3z3cSlO8/9rUx5Sj29m9mnqb2uL6OXlzvrFMmI1LkFP6cwBiM/q02Cd)
 ---
@@ -35,3 +37,6 @@ spring:
   profiles: development
   datasource:
     url: jdbc:postgresql://192.168.1.2:5432/cyberscape
+server:
+  servlet:
+    context-path: /
