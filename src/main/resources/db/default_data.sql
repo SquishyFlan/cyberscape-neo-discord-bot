@@ -83,3 +83,17 @@ INSERT INTO stat_skill_scale VALUES
 
 INSERT INTO vital_scale VALUES
   (600, 30, 20, 2, 1);
+
+INSERT INTO monster (id, name, hp, xp) VALUES
+ ('269f9976-b499-4f99-8b07-f8c64c34aff3', 'Puddling', 333, 111),
+ ('5c6da319-8a84-47ab-9c67-7bd3ea2a0e47', 'Baurus', 680, 280),
+ ('78dd427c-88df-40c4-a3f8-38f4e1cd527a', 'Highwayman', 1320, 640),
+ ('b1fd091f-5fe9-4efd-a8c9-04b6fbac2bb2', 'Wandering Berzerker', 2001, 900),
+ ('7a388f50-8610-4acd-a529-24154e6ae82a', 'Cursed Cube', 4096, 2197),
+ ('421f2a94-b09e-4698-adbc-c192ea41b625', 'Basalt-Skin Bear', 5800, 3190),
+ ('038437a7-d4ff-4dbd-9021-17f20b86712c', 'Displacer Treant', 7777, 4444),
+ ('f59eec6c-2fd1-4c32-bf9f-7ce548d2ad0b', 'The Innkeeper''s Door', 10000, 10000);
+
+INSERT INTO character VALUES
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'roland', 50, 1500000, -1, -1, 15, 'Burn', 5, '', 0, 15, 'Freeze', 5, '', 0, 15, 'Shock', 5, '', 0, 15, 'Stagger', 5, '', 0, 15, 'Root', 5, '', 0, 15, 'Deafen', 5, '', 0, 15, 'Martial Training', 5, '', 0, 20, 'Bestow', 10, '', 0, 4, '', 0, '', 0, 39, 'Animate', 25, '', 0, 20, 'Summon', 10, '', 0, 20, 'Flight', 10, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'hyperion', 50, 1500000, -1, -1, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 97, '', 0, '', 0, 9, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0);

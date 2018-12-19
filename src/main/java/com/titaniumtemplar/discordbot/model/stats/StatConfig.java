@@ -1,5 +1,6 @@
 package com.titaniumtemplar.discordbot.model.stats;
 
+import com.titaniumtemplar.db.jooq.enums.SkillType;
 import com.titaniumtemplar.db.jooq.enums.StatType;
 import java.util.List;
 import java.util.Map;
@@ -29,5 +30,5 @@ public class StatConfig
   private Map<StatType, StatLevelScale> statLevelScales;
 
   @Singular
-  private Map<StatType, List<StatSkillScale>> statSkillScales;
+  private Map<SkillType, List<StatSkillScale>> statSkillScales;
 }

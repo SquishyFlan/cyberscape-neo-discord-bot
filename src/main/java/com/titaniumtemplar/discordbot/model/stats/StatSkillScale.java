@@ -1,11 +1,11 @@
 package com.titaniumtemplar.discordbot.model.stats;
 
-import com.titaniumtemplar.db.jooq.enums.SkillType;
+import com.titaniumtemplar.db.jooq.enums.StatType;
 import lombok.Value;
 
 @Value
 public class StatSkillScale
 {
-  SkillType skill;
-  int perRank;
+  StatType stat;
+  int perSp;
 }

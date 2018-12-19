@@ -67,6 +67,8 @@ CREATE TABLE character (
   gravity_spec2_value INT NOT NULL
 );
 
+CREATE INDEX ON character (user_id);
+
 CREATE TYPE skill_type AS ENUM (
   'fire',
   'water',
