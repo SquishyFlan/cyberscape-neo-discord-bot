@@ -49,7 +49,7 @@ public class Combat
 
     calculateDamage(character, attack);
 
-    currentRound.addAttack(attack);
+    currentRound.addAttack(character.getUserId(), attack);
 
     participantUids.add(character.getUserId());
   }
