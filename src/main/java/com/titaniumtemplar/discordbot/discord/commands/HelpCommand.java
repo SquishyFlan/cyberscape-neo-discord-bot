@@ -1,5 +1,7 @@
 package com.titaniumtemplar.discordbot.discord.commands;
 
+import com.titaniumtemplar.discordbot.discord.Myra;
+import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.core.entities.Member;
@@ -26,7 +28,7 @@ public class HelpCommand implements DiscordCommand {
 	      .collect(joining("\n"));
 
   @Override
-  public void run(Message message, User author, Member member) {
+  public void run(CyberscapeService service, Myra myra, Message message, User author, Member member) {
     author.openPrivateChannel()
 	.queue((privateChat) -> {
 	  privateChat.sendMessage(DEFAULT_HELP_TEXT)

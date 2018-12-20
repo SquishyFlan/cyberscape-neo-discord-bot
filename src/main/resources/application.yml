@@ -38,5 +38,4 @@ spring:
   datasource:
     url: jdbc:postgresql://192.168.1.2:5432/cyberscape
 server:
-  servlet:
-    context-path: /
+  address: 0.0.0.0

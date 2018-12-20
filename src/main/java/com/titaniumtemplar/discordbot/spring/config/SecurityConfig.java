@@ -12,6 +12,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
       http
           .authorizeRequests()
 	    .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+	    .antMatchers("/derp").permitAll()
             .anyRequest().authenticated()
             .and()
           .oauth2Login()

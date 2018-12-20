@@ -1,5 +1,7 @@
 package com.titaniumtemplar.discordbot.discord.commands;
 
+import com.titaniumtemplar.discordbot.discord.Myra;
+import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import lombok.RequiredArgsConstructor;
 
 
@@ -13,7 +15,7 @@ public class UnknownCommand implements DiscordCommand {
   private final String[] splitCommand;
 
   @Override
-  public void run(Message message, User author, Member member) {
+  public void run(CyberscapeService service, Myra myra, Message message, User author, Member member) {
     // no-op
   }
 

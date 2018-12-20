@@ -2,22 +2,27 @@ package com.titaniumtemplar.discordbot.repository;
 
 import com.titaniumtemplar.db.jooq.enums.SkillType;
 import com.titaniumtemplar.db.jooq.tables.records.CharacterRecord;
+import com.titaniumtemplar.db.jooq.tables.records.MonsterRecord;
 import com.titaniumtemplar.db.jooq.tables.records.SkillScaleRecord;
 import com.titaniumtemplar.db.jooq.tables.records.VitalScaleRecord;
 import com.titaniumtemplar.discordbot.model.character.CharStats;
 import com.titaniumtemplar.discordbot.model.character.Skill;
 import com.titaniumtemplar.discordbot.model.exception.NoSuchCharacterException;
+import com.titaniumtemplar.discordbot.model.monster.MonsterTemplate;
 import com.titaniumtemplar.discordbot.model.stats.StatConfig;
 import com.titaniumtemplar.discordbot.model.stats.StatConfig.StatConfigBuilder;
 import com.titaniumtemplar.discordbot.model.stats.StatLevelScale;
 import com.titaniumtemplar.discordbot.model.stats.StatSkillScale;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import javax.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 import static com.titaniumtemplar.db.jooq.tables.Character.CHARACTER;
+import static com.titaniumtemplar.db.jooq.tables.Monster.MONSTER;
 import static com.titaniumtemplar.db.jooq.tables.SkillScale.SKILL_SCALE;
 import static com.titaniumtemplar.db.jooq.tables.StatLevelScale.STAT_LEVEL_SCALE;
 import static com.titaniumtemplar.db.jooq.tables.StatSkillScale.STAT_SKILL_SCALE;
@@ -177,5 +182,26 @@ public class CyberscapeRepository
 	});
 
     return cs;
+  }
+
+  public List<MonsterTemplate> getMonsters() {
+    return db.selectFrom(MONSTER)
+	.fetch(this::mapMonster);
+  }
+
+  private MonsterTemplate mapMonster(MonsterRecord record) {
+    return MonsterTemplate.builder()
+	.id(record.getId())
+	.name(record.getName())
+	.maxHp(record.getHp())
+	.xp(record.getXp())
+	.build();
+  }
+
+  public void awardXp(Collection<String> participantUids, int xp) {
+    db.update(CHARACTER)
+	.set(CHARACTER.XP, CHARACTER.XP.plus(xp))
+	.where(CHARACTER.USER_ID.in(participantUids))
+	.execute();
   }
 }
