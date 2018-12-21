@@ -1,8 +1,10 @@
 package com.titaniumtemplar.discordbot.model.combat;
 
+import static com.titaniumtemplar.db.jooq.enums.StatType.dex;
+import static com.titaniumtemplar.db.jooq.enums.StatType.int_;
+import static com.titaniumtemplar.db.jooq.enums.StatType.str;
+
 import com.titaniumtemplar.discordbot.model.character.CharStats;
-import com.titaniumtemplar.discordbot.model.combat.Attack.AttackType;
-import com.titaniumtemplar.discordbot.model.combat.Attack.Specialization;
 import com.titaniumtemplar.discordbot.model.monster.Monster;
 import java.util.HashSet;
 import java.util.Random;
@@ -11,10 +13,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
-
-import static com.titaniumtemplar.db.jooq.enums.StatType.dex;
-import static com.titaniumtemplar.db.jooq.enums.StatType.int_;
-import static com.titaniumtemplar.db.jooq.enums.StatType.str;
 
 @Data
 @NoArgsConstructor

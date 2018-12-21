@@ -22,12 +22,17 @@ import org.jooq.DSLContext;
 import org.springframework.stereotype.Repository;
 
 import static com.titaniumtemplar.db.jooq.tables.Character.CHARACTER;
+import static com.titaniumtemplar.db.jooq.tables.GuildCombatChannels.GUILD_COMBAT_CHANNELS;
+import static com.titaniumtemplar.db.jooq.tables.GuildSettings.GUILD_SETTINGS;
 import static com.titaniumtemplar.db.jooq.tables.Monster.MONSTER;
 import static com.titaniumtemplar.db.jooq.tables.SkillScale.SKILL_SCALE;
 import static com.titaniumtemplar.db.jooq.tables.StatLevelScale.STAT_LEVEL_SCALE;
 import static com.titaniumtemplar.db.jooq.tables.StatSkillScale.STAT_SKILL_SCALE;
 import static com.titaniumtemplar.db.jooq.tables.VitalScale.VITAL_SCALE;
 import static java.util.UUID.randomUUID;
+
+import com.titaniumtemplar.db.jooq.tables.records.GuildCombatChannelsRecord;
+import com.titaniumtemplar.discordbot.discord.GuildSettings;
 
 @Repository
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
@@ -198,10 +203,47 @@ public class CyberscapeRepository
 	.build();
   }
 
-  public void awardXp(Collection<String> participantUids, int xp) {
+  public void awardXp(
+      Collection<String> participantUids,
+      int xp,
+      Collection<String> levelups) {
     db.update(CHARACTER)
 	.set(CHARACTER.XP, CHARACTER.XP.plus(xp))
 	.where(CHARACTER.USER_ID.in(participantUids))
+	.execute();
+
+    db.update(CHARACTER)
+	.set(CHARACTER.LEVEL, CHARACTER.LEVEL.plus(1))
+	.where(CHARACTER.USER_ID.in(levelups))
+	.execute();
+  }
+
+  public GuildSettings getGuildSettings(String guildId) {
+    GuildSettings.GuildSettingsBuilder builder = db.selectFrom(GUILD_SETTINGS)
+	.where(GUILD_SETTINGS.GUILD_ID.eq(guildId))
+	.fetchOptional((record) -> GuildSettings.builder()
+	    .defaultRoleId(record.getDefaultRoleId()))
+	.orElseGet(GuildSettings::builder);
+
+    db.selectFrom(GUILD_COMBAT_CHANNELS)
+	.where(GUILD_COMBAT_CHANNELS.GUILD_ID.eq(guildId))
+	.forEach((cc) -> builder.combatChannel(cc.getChannelId()));
+
+    return builder.build();
+  }
+
+  public void addCombatChannel(String gid, String channelId) {
+    GuildCombatChannelsRecord gcc = db.newRecord(GUILD_COMBAT_CHANNELS);
+    gcc.setGuildId(gid);
+    gcc.setChannelId(channelId);
+    gcc.insert();
+  }
+
+  public void removeCombatChannel(String gid, String channelId) {
+    db.deleteFrom(GUILD_COMBAT_CHANNELS)
+	.where(
+	    GUILD_COMBAT_CHANNELS.GUILD_ID.eq(gid),
+	    GUILD_COMBAT_CHANNELS.CHANNEL_ID.eq(channelId))
 	.execute();
   }
 }

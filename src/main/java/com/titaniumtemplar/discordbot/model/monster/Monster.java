@@ -1,7 +1,7 @@
 package com.titaniumtemplar.discordbot.model.monster;
 
 import com.titaniumtemplar.discordbot.model.combat.Attack;
-import com.titaniumtemplar.discordbot.model.combat.Attack.AttackType;
+import com.titaniumtemplar.discordbot.model.combat.AttackType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;

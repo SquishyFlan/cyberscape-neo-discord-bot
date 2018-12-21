@@ -1,32 +1,24 @@
 package com.titaniumtemplar.discordbot.discord;
 
+import static com.titaniumtemplar.discordbot.model.combat.AttackType.ATTACK;
+import static com.titaniumtemplar.discordbot.model.combat.AttackType.BOLT;
+import static com.titaniumtemplar.discordbot.model.combat.AttackType.SHOOT;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static net.dv8tion.jda.core.Permission.MESSAGE_READ;
 import static net.dv8tion.jda.core.Permission.MESSAGE_WRITE;
 import static net.dv8tion.jda.core.entities.ChannelType.TEXT;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Function;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.inject.Inject;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-
 import com.titaniumtemplar.discordbot.discord.commands.AttackCommand;
+import com.titaniumtemplar.discordbot.discord.commands.BoltCommand;
+import com.titaniumtemplar.discordbot.discord.commands.ConfigCommand;
 import com.titaniumtemplar.discordbot.discord.commands.DiscordCommand;
 import com.titaniumtemplar.discordbot.discord.commands.HelpCommand;
 import com.titaniumtemplar.discordbot.discord.commands.ProfileCommand;
 import com.titaniumtemplar.discordbot.discord.commands.RegisterCommand;
 import com.titaniumtemplar.discordbot.discord.commands.RoleCommand;
+import com.titaniumtemplar.discordbot.discord.commands.ShootCommand;
 import com.titaniumtemplar.discordbot.discord.commands.SkillsCommand;
 import com.titaniumtemplar.discordbot.discord.commands.UnknownCommand;
 import com.titaniumtemplar.discordbot.model.combat.Attack;
@@ -35,7 +27,22 @@ import com.titaniumtemplar.discordbot.model.monster.Monster;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import java.awt.Color;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Function;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.inject.Inject;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
@@ -51,32 +58,29 @@ import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
-import static com.titaniumtemplar.discordbot.model.combat.Attack.AttackType.ATTACK;
-import static com.titaniumtemplar.discordbot.model.combat.Attack.AttackType.BOLT;
-import static com.titaniumtemplar.discordbot.model.combat.Attack.AttackType.SHOOT;
-import static java.util.stream.Collectors.joining;
-
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class Myra extends ListenerAdapter {
 
   //<editor-fold defaultstate="collapsed" desc="Static fields">
-  private static final int COMBAT_ROUND_SECONDS = 10; //30;
-  private static final int COMBAT_END_COOLDOWN = 5; //120;
-  private static final int COMBAT_WAIT_LOWER = 3; //300;
-  private static final int COMBAT_WAIT_UPPER = 6; //3600;
+  private static final int COMBAT_ROUND_SECONDS = 30;
+  private static final int COMBAT_END_COOLDOWN = 120;
+  private static final int COMBAT_WAIT_LOWER = 300;
+  private static final int COMBAT_WAIT_UPPER = 3600;
   private static final Random RAND = new Random();
+  private static final Pattern COMMAND_PATTERN = Pattern.compile("\"([^\"]*)\"|(\\S+)");
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Injected Fields">
   private final CyberscapeService service;
   private final ScheduledExecutorService combatThreadPool;
+  private final String baseUrl;
 //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Members">
   private final Map<String, Guild> guildMap = new HashMap<>();
   private final Map<String, Combat> combats = new HashMap<>();
-  private final Map<String, Function<? super String[], ? extends DiscordCommand>> commands = new HashMap<>();
+  private final Map<String, Function<? super List<String>, ? extends DiscordCommand>> commands = new HashMap<>();
 //</editor-fold>
 
   @PostConstruct
@@ -87,8 +91,9 @@ public class Myra extends ListenerAdapter {
     commands.put(".help", HelpCommand::withArgs);
     commands.put(".role", RoleCommand::withArgs);
     commands.put(".attack", AttackCommand::withArgs);
-    commands.put(".shoot", AttackCommand::withArgs);
-    commands.put(".bolt", AttackCommand::withArgs);
+    commands.put(".shoot", ShootCommand::withArgs);
+    commands.put(".bolt", BoltCommand::withArgs);
+    commands.put(".config", ConfigCommand::withArgs);
   }
 
   @PreDestroy
@@ -104,10 +109,14 @@ public class Myra extends ListenerAdapter {
   private List<TextChannel> getEligibleChannels(Guild guild)
   {
     Member myraMember = guild.getSelfMember();
+    Set<String> combatChannels = service.getGuildSettings(guild.getId())
+	.getCombatChannels();
+
     return guild.getChannels()
         .stream()
         .filter((channel) -> channel.getType() == TEXT)
         .map((channel) -> (TextChannel) channel)
+	.filter((channel) -> !combatChannels.contains(channel.getId()))
         .peek((channel) -> log.info("Checking channel {} with permissions {} for permissions", channel.getName(), channel.getPermissionOverrides()))
         .filter((channel) -> myraMember.hasPermission(channel, MESSAGE_READ, MESSAGE_WRITE))
         .peek((channel) -> log.info("Permitting channel {}", channel.getName()))
@@ -158,15 +167,17 @@ public class Myra extends ListenerAdapter {
   }
 
   private void handleCommand(Message message, User author, Member member) {
-    String content = message.getContentStripped();
+    String content = message.getContentDisplay();
 
     if (!content.startsWith("."))
       return;
 
-    // TODO: Commands for "combatRoom" and "announceCombatRoom"
-    String[] splitCommand = content.split(" ");
+    List<String> splitCommand = COMMAND_PATTERN.matcher(content)
+	.results()
+	.map(MatchResult::group)
+	.collect(toList());
 
-    commands.getOrDefault(splitCommand[0], UnknownCommand::withArgs)
+    commands.getOrDefault(splitCommand.get(0), UnknownCommand::withArgs)
 	.apply(splitCommand)
 	.run(service, this, message, author, member);
   }
@@ -193,7 +204,25 @@ public class Myra extends ListenerAdapter {
     TextChannel channel = channels.get(RAND.nextInt(channels.size()));
 
     // Channel for combat
-    // TODO
+    Set<String> combatChannels = service.getGuildSettings(guild.getId())
+	.getCombatChannels();
+    TextChannel combatChannel;
+    if (combatChannels.isEmpty()) {
+      combatChannel = channel;
+    } else {
+      int index = RAND.nextInt(combatChannels.size());
+      Iterator<String> iter = combatChannels.iterator();
+      for (int i = 0; i < index; i++) {
+	iter.next();
+      }
+      combatChannel = guild.getTextChannelById(iter.next());
+
+      channel.sendMessage("Combat beginning in " + combatChannel.getAsMention() + "!")
+	  .queue((message) -> combatThreadPool.schedule(
+	      () -> message.delete().queue(),
+	      COMBAT_ROUND_SECONDS,
+	      SECONDS));
+    }
 
     // TODO: Figure out how "active" the channel is to determine the size of the mob
     // Time-based EWMA of number of chat messages
@@ -205,7 +234,7 @@ public class Myra extends ListenerAdapter {
 
     combats.put(guild.getId(), combat);
 
-    channel.sendMessage("Something threatening looms nearby...")
+    combatChannel.sendMessage("Something threatening looms nearby...")
         .queue(
           (message) -> {
             combat.setMessage(message);
@@ -279,15 +308,22 @@ public class Myra extends ListenerAdapter {
       Guild guild = prevMessage.getGuild();
       Monster monster = combat.getMonster();
       combats.remove(prevMessage.getGuild().getId());
+
+      Set<String> levelups = service.awardXp(combat.getParticipantUids(), monster.getXp());
       String combatants = combat.getParticipantUids()
 	  .stream()
 	  .map(guild::getMemberById)
 	  .filter(Objects::nonNull)
-	  .map(Member::getEffectiveName)
+	  .map((member) -> {
+	    String memberId = member.getUser().getId();
+	    member.getEffectiveName();
+	    if (levelups.contains(memberId)) {
+	      return member.getEffectiveName() + " **LEVEL UP**";
+	    }
+	    return member.getEffectiveName();
+	  })
 	  .collect(joining("\n"));
-      service.awardXp(combat.getParticipantUids(), monster.getXp());
-      // TODO: Print out characters who leveled up
-      // TODO: When do they level up..?
+
       MessageEmbed embed = new EmbedBuilder()
 	  .setTitle(monster.getName())
 	  .setDescription("**DEFEATED**")
@@ -350,5 +386,9 @@ public class Myra extends ListenerAdapter {
 	  .editMessage(combatEmbed)
 	  .queue();
     }
+  }
+
+  public String getBaseUrl() {
+    return baseUrl;
   }
 }

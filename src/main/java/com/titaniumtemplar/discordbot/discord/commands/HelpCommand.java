@@ -1,20 +1,21 @@
 package com.titaniumtemplar.discordbot.discord.commands;
 
+import static java.util.stream.Collectors.joining;
+import static net.dv8tion.jda.core.entities.ChannelType.TEXT;
+
 import com.titaniumtemplar.discordbot.discord.Myra;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
+import java.util.List;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 
-import static java.util.stream.Collectors.joining;
-import static net.dv8tion.jda.core.entities.ChannelType.TEXT;
-
 @RequiredArgsConstructor(staticName = "withArgs")
 public class HelpCommand implements DiscordCommand {
 
-  private final String[] splitCommand;
+  private final List<String> splitCommand;
 
   private static final String DEFAULT_HELP_TEXT = Stream.of("Hi there! I'm Myra, and welcome to Cyberscape Neo!",
 	      "To get started, you'll first need to register an account by typing \".register\"",

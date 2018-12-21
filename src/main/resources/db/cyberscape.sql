@@ -133,9 +133,22 @@ CREATE TABLE monster (
   xp INT NOT NULL
 );
 
+CREATE TABLE guild_settings (
+  guild_id VARCHAR NOT NULL PRIMARY KEY,
+  default_role_id VARCHAR
+);
+
+CREATE TABLE guild_combat_channels (
+  guild_id VARCHAR NOT NULL,
+  channel_id VARCHAR NOT NULL,
+  PRIMARY KEY (guild_id, channel_id)
+);
+
 GRANT SELECT,INSERT,UPDATE,DELETE ON character TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON skill_scale TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON stat_level_scale TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON stat_skill_scale TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON vital_scale TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON monster TO cyberscape;
+GRANT SELECT,INSERT,UPDATE,DELETE ON guild_settings TO cyberscape;
+GRANT SELECT,INSERT,UPDATE,DELETE ON guild_combat_channels TO cyberscape;

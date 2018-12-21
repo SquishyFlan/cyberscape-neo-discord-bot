@@ -18,6 +18,9 @@ public class DiscordConfig {
   @Value("${discord.token}")
   String botToken;
 
+  @Value("${game.baseUrl}")
+  String baseUrl;
+
   @Bean
   JDA jda(Myra myra) throws Exception {
     return new JDABuilder(BOT)
@@ -32,6 +35,6 @@ public class DiscordConfig {
         1,
         (f) -> new Thread(f, "CombatThread"));
 
-    return new Myra(service, combatThreadPool);
+    return new Myra(service, combatThreadPool, baseUrl);
   }
 }

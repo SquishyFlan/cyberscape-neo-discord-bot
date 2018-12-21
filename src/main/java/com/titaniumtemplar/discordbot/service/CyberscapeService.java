@@ -1,11 +1,15 @@
 package com.titaniumtemplar.discordbot.service;
 
+import static java.util.function.Predicate.not;
+
 import com.titaniumtemplar.discordbot.model.character.CharStats;
 import com.titaniumtemplar.discordbot.model.monster.MonsterTemplate;
 import com.titaniumtemplar.discordbot.model.stats.StatConfig;
 import com.titaniumtemplar.discordbot.repository.CyberscapeRepository;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +18,9 @@ import org.apache.commons.math3.util.Pair;
 import org.springframework.stereotype.Service;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
+import com.titaniumtemplar.discordbot.discord.GuildSettings;
 
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
@@ -24,6 +31,7 @@ public class CyberscapeService {
   // Caches
   private StatConfig statConfig;
   private Map<String, CharStats> characterCache = new ConcurrentHashMap<>();
+  private Map<String, GuildSettings> guildSettingsCache = new ConcurrentHashMap<>();
   private EnumeratedDistribution<MonsterTemplate> monsterCache;
 
   public StatConfig getStatConfig() {
@@ -64,10 +72,35 @@ public class CyberscapeService {
     return monsterCache.sample();
   }
 
-  public void awardXp(Collection<String> participantUids, int xp) {
-    participantUids.stream()
+  public Set<String> awardXp(Collection<String> participantUids, int xp) {
+    Set<String> eligibleCharacters = new HashSet<>();
+    Set<String> levelups = participantUids.stream()
 	.map(this::getCharacter)
-	.forEach((character) -> character.setXp(character.getXp() + xp));
-    repo.awardXp(participantUids, xp);
+	.filter(not(CharStats::maxLevel))
+	.peek((character) -> eligibleCharacters.add(character.getUserId()))
+	.peek((character) -> character.setXp(character.getXp() + xp))
+	.filter(CharStats::levelUp)
+	.peek(this::calcStats)
+	.map(CharStats::getUserId)
+	.collect(toSet());
+    repo.awardXp(eligibleCharacters, xp, levelups);
+
+    return levelups;
+  }
+
+  public GuildSettings getGuildSettings(String gid) {
+    return guildSettingsCache.computeIfAbsent(gid, repo::getGuildSettings);
+  }
+
+  public void addCombatChannel(String gid, String channelId, boolean add) {
+    GuildSettings settings = getGuildSettings(gid);
+    Set<String> combatChannels = new HashSet<>(settings.getCombatChannels());
+    if (add && !combatChannels.contains(channelId)) {
+      combatChannels.add(channelId);
+      repo.addCombatChannel(gid, channelId);
+    } else if (!add && combatChannels.remove(channelId)) {
+      repo.removeCombatChannel(gid, channelId);
+    }
+    settings.setCombatChannels(combatChannels);
   }
 }

@@ -11,15 +11,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.titaniumtemplar.db.jooq.enums.StatType.int_;
 import static com.titaniumtemplar.db.jooq.enums.StatType.vit;
 import static com.titaniumtemplar.db.jooq.enums.StatType.wis;
+import static java.util.stream.Collectors.toList;
 
+import com.titaniumtemplar.discordbot.model.combat.Specialization;
+import java.util.HashSet;
+import java.util.Set;
+
+@Slf4j
 @Data
 public class CharStats
 {
+  private static final int MAX_LEVEL = 50;
+  private static final int BASE_XP = 200;
+  private static final float XP_EXPONENT = 1.53f;
+  private static final AtomicInteger TOTAL_XP = new AtomicInteger();
+  private static final List<Integer> NEXT_LEVELS = IntStream.range(0, MAX_LEVEL)
+      .map((level) -> (int) (BASE_XP * Math.pow(level, XP_EXPONENT)))
+      .peek(TOTAL_XP::addAndGet)
+      .boxed()
+      .collect(toList());
+
   // DB Values
   private UUID id;
   private String userId;
@@ -28,10 +46,12 @@ public class CharStats
   private int xp;
   private int level;
   private Map<SkillType, Skill> skills = new HashMap<>();
+  private Set<Specialization> specs = new HashSet<>();
 
   // Calculated values
   private int hpMax;
   private int mpMax;
+  private int xpNext;
   private int spTotal;
   private int spUsed;
   private int spLeft;
@@ -132,11 +152,41 @@ public class CharStats
 	stats.get(int_).get() * config.getMpPerInt() +
 	stats.get(wis).get() * config.getMpPerWis();
 
+    if (level != MAX_LEVEL) {
+      xpNext = NEXT_LEVELS.get(level);
+    }
+
     if (hpCurrent == -1) hpCurrent = hpMax;
     if (mpCurrent == -1) mpCurrent = mpMax;
   }
 
   public void putSkill(SkillType skill, Skill values) {
     skills.put(skill, values);
+    if (values.getSpec1Name() != null) {
+      specs.add(Specialization.fromString(values.getSpec1Name()));
+      if (values.getSpec2Name() != null) {
+	specs.add(Specialization.fromString(values.getSpec2Name()));
+      }
+    }
+  }
+
+  public boolean levelUp() {
+    if (xp > xpNext) {
+      xp -= xpNext;
+      level++;
+      hpCurrent = -1;
+      mpCurrent = -1;
+      if (level != MAX_LEVEL) {
+	xpNext = NEXT_LEVELS.get(level);
+      } else {
+	xpNext = 0;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  public boolean maxLevel() {
+    return level == MAX_LEVEL;
   }
 }
