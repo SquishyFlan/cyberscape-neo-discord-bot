@@ -1,10 +1,9 @@
 package com.titaniumtemplar.discordbot.model.combat;
 
 import com.titaniumtemplar.discordbot.model.monster.Monster;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -12,35 +11,43 @@ import static java.util.stream.Collectors.joining;
 
 @Getter
 @RequiredArgsConstructor
-public class Round
-{
-  private final int number;
-  private final List<Attack> attacks = new ArrayList<>();
-  private final Set<String> participants = new HashSet<>();
+public class Round {
 
-  String resolve(Monster monster) {
-    if (attacks.isEmpty())
-      return monster.getName() + " starts to look restless...";
+	private final int number;
+	private final Map<String, Attack> attacks = new LinkedHashMap<>();
 
-    String roundString = attacks.stream()
-	.peek(monster::applyAttack)
-	.map(Attack::getDamageString)
-	.collect(joining("\n"));
+	String resolve(Monster monster) {
+		if (attacks.isEmpty()) {
+			return monster.getName() + " starts to look restless...";
+		}
 
-    monster.handleShields();
+		String roundString = attacks.values()
+			.stream()
+			.peek(monster::applyAttack)
+			.map(Attack::getDamageString)
+			.collect(joining("\n"));
 
-    return roundString;
-  }
+		monster.handleShields();
 
-  void addAttack(String participantId, Attack attack) {
-    if (participants.contains(participantId)) {
-      return;
-    }
-    participants.add(participantId);
-    attacks.add(attack);
-  }
+		return roundString;
+	}
 
-  public boolean isEmpty() {
-    return attacks.isEmpty();
-  }
+	void addAttack(String participantId, Attack attack) {
+		if (attacks.containsKey(participantId)) {
+			return;
+		}
+		attacks.put(participantId, attack);
+	}
+
+	void removeAttack(String participantId) {
+		attacks.remove(participantId);
+	}
+
+	Collection<String> getParticipants() {
+		return attacks.keySet();
+	}
+
+	public boolean isEmpty() {
+		return attacks.isEmpty();
+	}
 }

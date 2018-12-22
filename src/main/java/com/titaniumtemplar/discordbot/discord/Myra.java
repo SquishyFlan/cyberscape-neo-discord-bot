@@ -48,6 +48,7 @@ import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
+import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.ReadyEvent;
@@ -55,8 +56,14 @@ import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.core.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.core.events.message.guild.react.GenericGuildMessageReactionEvent;
+import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionRemoveEvent;
 import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
@@ -69,6 +76,9 @@ public class Myra extends ListenerAdapter {
 	private static final int COMBAT_WAIT_UPPER = 3600;
 	private static final Random RAND = new Random();
 	private static final Pattern COMMAND_PATTERN = Pattern.compile("\"([^\"]*)\"|(\\S+)");
+	private static final String ATTACK_EMOJI = "⚔";
+	private static final String SHOOT_EMOJI = "🏹";
+	private static final String BOLT_EMOJI = "⚡";
 //</editor-fold>
 
 	//<editor-fold defaultstate="collapsed" desc="Injected Fields">
@@ -157,6 +167,60 @@ public class Myra extends ListenerAdapter {
 	}
 
 	@Override
+	public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event) {
+		Combat combat = getCombatForReaction(event);
+
+		List<String> command = getCommandForEmoji(event.getReactionEmote());
+		if (command.isEmpty()) {
+			return;
+		}
+
+		runCommand(command, combat.getMessage(), event.getUser(), event.getMember());
+	}
+
+	@Override
+	public void onGuildMessageReactionRemove(GuildMessageReactionRemoveEvent event) {
+		Combat combat = getCombatForReaction(event);
+		String userId = event.getUser().getId();
+		synchronized (combat) {
+			combat.removeAttack(userId);
+		}
+		updateCombatMessage(combat);
+	}
+
+	private Combat getCombatForReaction(GenericGuildMessageReactionEvent event) {
+		if (event.getUser().isBot()) {
+			return null;
+		}
+
+		Guild guild = event.getGuild();
+		Combat combat = combats.get(guild.getId());
+		if (combat == null) {
+			return null;
+		}
+
+		Message message = combat.getMessage();
+		if (!event.getMessageId().equals(message.getId())) {
+			return null;
+		}
+
+		return combat;
+	}
+
+	private List<String> getCommandForEmoji(ReactionEmote emote) {
+		switch (emote.getName()) {
+			case ATTACK_EMOJI:
+				return singletonList(".attack");
+			case SHOOT_EMOJI:
+				return singletonList(".shoot");
+			case BOLT_EMOJI:
+				return singletonList(".bolt");
+			default:
+				return emptyList();
+		}
+	}
+
+	@Override
 	public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
 		handleCommand(event.getMessage(), event.getAuthor(), null);
 	}
@@ -178,6 +242,14 @@ public class Myra extends ListenerAdapter {
 			.map(MatchResult::group)
 			.collect(toList());
 
+		runCommand(splitCommand, message, author, member);
+	}
+
+	private void runCommand(
+		List<String> splitCommand,
+		Message message,
+		User author,
+		Member member) {
 		commands.getOrDefault(splitCommand.get(0), UnknownCommand::withArgs)
 			.apply(splitCommand)
 			.run(service, this, message, author, member);
@@ -256,6 +328,9 @@ public class Myra extends ListenerAdapter {
 				.queue((newMessage) -> {
 					combat.setMessage(newMessage);
 					prevMessage.delete().queue();
+					newMessage.addReaction(ATTACK_EMOJI).queue();
+					newMessage.addReaction(SHOOT_EMOJI).queue();
+					newMessage.addReaction(BOLT_EMOJI).queue();
 					combatThreadPool.schedule(
 						() -> nextCombatRound(combat),
 						COMBAT_ROUND_SECONDS,
@@ -268,6 +343,7 @@ public class Myra extends ListenerAdapter {
 		Monster monster = combat.getMonster();
 		String combatants = combat.getCurrentRound()
 			.getAttacks()
+			.values()
 			.stream()
 			.map(Attack::getCombatantString)
 			.collect(joining("\n"));
@@ -277,7 +353,7 @@ public class Myra extends ListenerAdapter {
 		MessageEmbed embed = new EmbedBuilder()
 			.setTitle(monster.getName())
 			.setDescription("**Round " + combat.getCurrentRound().getNumber() + "**\n"
-				+ "Join the battle with \".attack\", \".shoot\", or \".bolt\"!")
+				+ "Join the battle with \".attack\", \".shoot\", \".bolt\", or one of the emoji below!")
 			.setColor(Color.RED)
 			.addField("HP", monster.getCurrentHp() + "/" + monster.getMaxHp(), true)
 			.addField("Defense", "Melee\nRanged\nMagic", true)
@@ -367,6 +443,7 @@ public class Myra extends ListenerAdapter {
 	/******************
 	 * COMMAND HELPERS
 	 *****************/
+
 	public Combat getCombat(Member member) {
 		return combats.get(member.getGuild().getId());
 	}
