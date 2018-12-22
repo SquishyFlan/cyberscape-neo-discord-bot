@@ -13,3 +13,4 @@ buildNumber.properties
 
 # Ignore NetBeans files which might import something... incriminating
 nbactions.xml
+nb-configuration.xml
