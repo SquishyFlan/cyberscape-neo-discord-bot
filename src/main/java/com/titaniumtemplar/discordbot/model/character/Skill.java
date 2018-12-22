@@ -12,5 +12,4 @@ public class Skill
   private int spec1Ranks;
   private String spec2Name;
   private int spec2Ranks;
-  private int nextRankCost;
 }

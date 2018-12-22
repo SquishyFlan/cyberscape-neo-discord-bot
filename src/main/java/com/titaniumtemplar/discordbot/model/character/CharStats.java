@@ -1,28 +1,28 @@
 package com.titaniumtemplar.discordbot.model.character;
 
-import com.titaniumtemplar.db.jooq.enums.SkillType;
-import com.titaniumtemplar.db.jooq.enums.StatType;
-import com.titaniumtemplar.discordbot.model.stats.StatConfig;
-import com.titaniumtemplar.discordbot.model.stats.StatLevelScale;
-import com.titaniumtemplar.discordbot.model.stats.StatSkillScale;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import static com.titaniumtemplar.db.jooq.enums.StatType.int_;
 import static com.titaniumtemplar.db.jooq.enums.StatType.vit;
 import static com.titaniumtemplar.db.jooq.enums.StatType.wis;
 import static java.util.stream.Collectors.toList;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.titaniumtemplar.db.jooq.enums.SkillType;
+import com.titaniumtemplar.db.jooq.enums.StatType;
 import com.titaniumtemplar.discordbot.model.combat.Specialization;
+import com.titaniumtemplar.discordbot.model.stats.StatConfig;
+import com.titaniumtemplar.discordbot.model.stats.StatLevelScale;
+import com.titaniumtemplar.discordbot.model.stats.StatSkillScale;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Data
@@ -46,6 +46,8 @@ public class CharStats {
 	private int xp;
 	private int level;
 	private Map<SkillType, Skill> skills = new HashMap<>();
+
+	@JsonIgnore
 	private Set<Specialization> specs = new HashSet<>();
 
 	// Derived values
@@ -140,9 +142,9 @@ public class CharStats {
 				statSkillScales.get(skillType)
 					.forEach((scale) -> stats.get(scale.getStat())
 					.addAndGet(totalSkillSpUsed * scale.getPerSp()));
-
-				skill.setNextRankCost(
-					spCostPerRank + (spCostIncAmount * ranks / spCostRankGap));
+//
+//				skill.setNextRankCost(
+//					spCostPerRank + (spCostIncAmount * ranks / spCostRankGap));
 			});
 
 		spLeft = spTotal - spUsed;

@@ -107,7 +107,7 @@ INSERT INTO character_skill VALUES
  ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'sonic', 15, 'Deafen', 5, '', 0),
  ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'personal', 15, 'Martial Training', 5, '', 0),
  ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'material', 20, 'Bestow', 10, '', 0),
- ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'shift', 4, '', 0, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'shift', 3, '', 0, '', 0),
  ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'life', 39, 'Animate', 25, '', 0),
  ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'space', 20, 'Summon', 10, '', 0),
  ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'gravity', 20, 'Flight', 10, '', 0),

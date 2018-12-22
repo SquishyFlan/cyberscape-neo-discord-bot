@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import static java.util.stream.Collectors.toList;
 
 import com.titaniumtemplar.discordbot.discord.GuildSettings;
+import com.titaniumtemplar.discordbot.model.character.CharSkillsUpdate;
 import java.util.List;
 
 @Service
@@ -104,5 +105,9 @@ public class CyberscapeService {
 			repo.removeCombatChannel(gid, channelId);
 		}
 		settings.setCombatChannels(combatChannels);
+	}
+
+	public void updateCharacter(String userId, CharSkillsUpdate charStats) {
+		// TODO: Duplicate or otherwise mock the stat update before saving it
 	}
 }
