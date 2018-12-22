@@ -26,167 +26,172 @@ import java.util.Set;
 
 @Slf4j
 @Data
-public class CharStats
-{
-  private static final int MAX_LEVEL = 50;
-  private static final int BASE_XP = 200;
-  private static final float XP_EXPONENT = 1.53f;
-  private static final AtomicInteger TOTAL_XP = new AtomicInteger();
-  private static final List<Integer> NEXT_LEVELS = IntStream.range(0, MAX_LEVEL)
-      .map((level) -> (int) (BASE_XP * Math.pow(level, XP_EXPONENT)))
-      .peek(TOTAL_XP::addAndGet)
-      .boxed()
-      .collect(toList());
+public class CharStats {
 
-  // DB Values
-  private UUID id;
-  private String userId;
-  private int hpCurrent;
-  private int mpCurrent;
-  private int xp;
-  private int level;
-  private Map<SkillType, Skill> skills = new HashMap<>();
-  private Set<Specialization> specs = new HashSet<>();
+	private static final int MAX_LEVEL = 50;
+	private static final int BASE_XP = 200;
+	private static final float XP_EXPONENT = 1.53f;
+	private static final AtomicInteger TOTAL_XP = new AtomicInteger();
+	private static final List<Integer> NEXT_LEVELS = IntStream.range(0, MAX_LEVEL)
+		.map((level) -> (int) (BASE_XP * Math.pow(level, XP_EXPONENT)))
+		.peek(TOTAL_XP::addAndGet)
+		.boxed()
+		.collect(toList());
 
-  // Calculated values
-  private int hpMax;
-  private int mpMax;
-  private int xpNext;
-  private int spTotal;
-  private int spUsed;
-  private int spLeft;
-  private Map<StatType, AtomicInteger> stats = new HashMap<>();
+	// DB Values
+	private UUID id;
+	private String userId;
+	private int hpCurrent;
+	private int mpCurrent;
+	private int xp;
+	private int level;
+	private Map<SkillType, Skill> skills = new HashMap<>();
+	private Set<Specialization> specs = new HashSet<>();
 
-  // Set from Discord/Auth
-  private String name;
+	// Derived values
+	private int hpMax;
+	private int mpMax;
+	private int xpNext;
+	private int spTotal;
+	private int spUsed;
+	private int spLeft;
+	private Map<StatType, AtomicInteger> stats = new HashMap<>();
 
-  public void calcStats(StatConfig config)
-  {
-    spTotal = 0;
-    int spPerLevel = config.getSpPerLevel();
-    int spLevelGap = config.getSpPerLevelGap();
-    int spInc = config.getSpIncAmount();
-    for (int l = 2; l < level + 1; l++) {
-      if (l % spLevelGap == 0) {
-	spPerLevel += spInc;
-      }
-      spTotal += spPerLevel;
-    }
+	// Set from Discord/Auth
+	private String name;
 
-    spUsed = 0;
-    int spCostPerRank = config.getSpCostPerRank();
-    int spCostRankGap = config.getSpCostPerRankGap();
-    int spCostIncAmount = config.getSpCostIncAmount();
-    int spec1Start = config.getSpec1Start();
-    int spec2Start = config.getSpec2Start();
-    Map<StatType, StatLevelScale> statLevelScales = config.getStatLevelScales();
-    Map<SkillType, List<StatSkillScale>> statSkillScales = config.getStatSkillScales();
+	public void calcStats(StatConfig config) {
+		spTotal = 0;
+		int spPerLevel = config.getSpPerLevel();
+		int spLevelGap = config.getSpPerLevelGap();
+		int spInc = config.getSpIncAmount();
+		for (int l = 2; l < level + 1; l++) {
+			if (l % spLevelGap == 0) {
+				spPerLevel += spInc;
+			}
+			spTotal += spPerLevel;
+		}
 
-    Arrays.stream(StatType.values())
-	.forEach((stat) -> {
-	  StatLevelScale levelScale = statLevelScales.get(stat);
-	  int statVal = levelScale.getBase();
-	  int statPerLevel = levelScale.getPerLevel();
-	  int statLevelGap = levelScale.getPerLevelGap();
-	  int statInc = levelScale.getIncAmount();
+		spUsed = 0;
+		int spCostPerRank = config.getSpCostPerRank();
+		int spCostRankGap = config.getSpCostPerRankGap();
+		int spCostIncAmount = config.getSpCostIncAmount();
+		int spec1Start = config.getSpec1Start();
+		int spec2Start = config.getSpec2Start();
+		Map<StatType, StatLevelScale> statLevelScales = config.getStatLevelScales();
+		Map<SkillType, List<StatSkillScale>> statSkillScales = config.getStatSkillScales();
 
-	  int statLevel = level;
-	  while (statLevel > 0) {
-	    statVal += statPerLevel * (statLevel - 1);
-	    statLevel -= statLevelGap;
-	    statPerLevel = statInc;
-	  }
+		Arrays.stream(StatType.values())
+			.forEach((stat) -> {
+				StatLevelScale levelScale = statLevelScales.get(stat);
+				int statVal = levelScale.getBase();
+				int statPerLevel = levelScale.getPerLevel();
+				int statLevelGap = levelScale.getPerLevelGap();
+				int statInc = levelScale.getIncAmount();
 
-	  stats.put(stat, new AtomicInteger(statVal));
-	});
+				int statLevel = level;
+				while (statLevel > 0) {
+					statVal += statPerLevel * (statLevel - 1);
+					statLevel -= statLevelGap;
+					statPerLevel = statInc;
+				}
 
-    Arrays.stream(SkillType.values())
-	.forEach((skillType) -> {
-	  Skill skill = skills.get(skillType);
-	  int ranks = skill.getRanks();
-	  int skillSpUsed = 0;
-	  if (ranks >= spec1Start) {
-	    int specRanks = skill.getSpec1Ranks();
-	    int costPerRank = spCostPerRank + ((spCostIncAmount * spec1Start / spCostRankGap));
-	    while (specRanks > 0) {
-	      skillSpUsed += costPerRank * specRanks;
-	      specRanks -= spCostRankGap;
-	      costPerRank = spCostIncAmount;
-	    }
-	  }
+				stats.put(stat, new AtomicInteger(statVal));
+			});
 
-	  if (ranks >= spec2Start) {
-	    int specRanks = skill.getSpec2Ranks();
-	    int costPerRank = spCostPerRank + ((spCostIncAmount * spec2Start / spCostRankGap));
-	    while (specRanks > 0) {
-	      skillSpUsed += costPerRank * specRanks;
-	      specRanks -= spCostRankGap;
-	      costPerRank = spCostIncAmount;
-	    }
-	  }
+		Arrays.stream(SkillType.values())
+			.forEach((skillType) -> {
+				Skill skill = skills.get(skillType);
+				int ranks = skill.getRanks();
+				int skillSpUsed = 0;
+				if (ranks >= spec1Start) {
+					int specRanks = skill.getSpec1Ranks();
+					int costPerRank = spCostPerRank + ((spCostIncAmount * spec1Start / spCostRankGap));
+					while (specRanks > 0) {
+						skillSpUsed += costPerRank * specRanks;
+						specRanks -= spCostRankGap;
+						costPerRank = spCostIncAmount;
+					}
+				}
 
-	  int costPerRank = spCostPerRank;
-	  while (ranks > 0) {
-	    skillSpUsed += costPerRank * ranks;
-	    ranks -= spCostRankGap;
-	    costPerRank = spCostIncAmount;
-	    if (spCostRankGap < 1) break;
-	  }
+				if (ranks >= spec2Start) {
+					int specRanks = skill.getSpec2Ranks();
+					int costPerRank = spCostPerRank + ((spCostIncAmount * spec2Start / spCostRankGap));
+					while (specRanks > 0) {
+						skillSpUsed += costPerRank * specRanks;
+						specRanks -= spCostRankGap;
+						costPerRank = spCostIncAmount;
+					}
+				}
 
-	  spUsed += skillSpUsed;
+				int costPerRank = spCostPerRank;
+				while (ranks > 0) {
+					skillSpUsed += costPerRank * ranks;
+					ranks -= spCostRankGap;
+					costPerRank = spCostIncAmount;
+					if (spCostRankGap < 1) {
+						break;
+					}
+				}
 
-	  int totalSkillSpUsed = skillSpUsed;
-	  statSkillScales.get(skillType)
-	      .forEach((scale) -> stats.get(scale.getStat())
-	      .addAndGet(totalSkillSpUsed * scale.getPerSp()));
+				spUsed += skillSpUsed;
 
-	  skill.setNextRankCost(
-	      spCostPerRank + (spCostIncAmount * ranks / spCostRankGap));
-	});
+				int totalSkillSpUsed = skillSpUsed;
+				statSkillScales.get(skillType)
+					.forEach((scale) -> stats.get(scale.getStat())
+					.addAndGet(totalSkillSpUsed * scale.getPerSp()));
 
-    spLeft = spTotal - spUsed;
+				skill.setNextRankCost(
+					spCostPerRank + (spCostIncAmount * ranks / spCostRankGap));
+			});
 
-    hpMax = config.getHpBase() +
-	stats.get(vit).get() * config.getHpPerVit();
-    mpMax = config.getMpBase() +
-	stats.get(int_).get() * config.getMpPerInt() +
-	stats.get(wis).get() * config.getMpPerWis();
+		spLeft = spTotal - spUsed;
 
-    if (level != MAX_LEVEL) {
-      xpNext = NEXT_LEVELS.get(level);
-    }
+		hpMax = config.getHpBase()
+			+ stats.get(vit).get() * config.getHpPerVit();
+		mpMax = config.getMpBase()
+			+ stats.get(int_).get() * config.getMpPerInt()
+			+ stats.get(wis).get() * config.getMpPerWis();
 
-    if (hpCurrent == -1) hpCurrent = hpMax;
-    if (mpCurrent == -1) mpCurrent = mpMax;
-  }
+		while (level < MAX_LEVEL && xp > NEXT_LEVELS.get(level)) {
+			xp -= NEXT_LEVELS.get(level);
+			level++;
+			hpCurrent = -1;
+			mpCurrent = -1;
+		}
+		if (level != MAX_LEVEL) {
+			xpNext = NEXT_LEVELS.get(level);
+		} else {
+			xp = -1;
+			xpNext = -1;
+		}
 
-  public void putSkill(SkillType skill, Skill values) {
-    skills.put(skill, values);
-    if (values.getSpec1Name() != null) {
-      specs.add(Specialization.fromString(values.getSpec1Name()));
-      if (values.getSpec2Name() != null) {
-	specs.add(Specialization.fromString(values.getSpec2Name()));
-      }
-    }
-  }
+		if (hpCurrent == -1) {
+			hpCurrent = hpMax;
+		}
+		if (mpCurrent == -1) {
+			mpCurrent = mpMax;
+		}
+	}
 
-  public boolean levelUp() {
-    if (xp > xpNext) {
-      xp -= xpNext;
-      level++;
-      hpCurrent = -1;
-      mpCurrent = -1;
-      if (level != MAX_LEVEL) {
-	xpNext = NEXT_LEVELS.get(level);
-      } else {
-	xpNext = 0;
-      }
-      return true;
-    }
-    return false;
-  }
+	public void putSkill(SkillType skill, Skill values) {
+		skills.put(skill, values);
+		if (values.getSpec1Name() != null) {
+			specs.add(Specialization.fromString(values.getSpec1Name()));
+			if (values.getSpec2Name() != null) {
+				specs.add(Specialization.fromString(values.getSpec2Name()));
+			}
+		}
+	}
 
-  public boolean maxLevel() {
-    return level == MAX_LEVEL;
-  }
+	public boolean levelUp() {
+		if (xp < xpNext) {
+			return false;
+		}
+		return true;
+	}
+
+	public boolean maxLevel() {
+		return level == MAX_LEVEL;
+	}
 }

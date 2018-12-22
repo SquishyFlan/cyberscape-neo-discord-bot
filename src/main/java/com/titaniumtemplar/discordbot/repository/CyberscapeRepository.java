@@ -1,27 +1,7 @@
 package com.titaniumtemplar.discordbot.repository;
 
-import com.titaniumtemplar.db.jooq.enums.SkillType;
-import com.titaniumtemplar.db.jooq.tables.records.CharacterRecord;
-import com.titaniumtemplar.db.jooq.tables.records.MonsterRecord;
-import com.titaniumtemplar.db.jooq.tables.records.SkillScaleRecord;
-import com.titaniumtemplar.db.jooq.tables.records.VitalScaleRecord;
-import com.titaniumtemplar.discordbot.model.character.CharStats;
-import com.titaniumtemplar.discordbot.model.character.Skill;
-import com.titaniumtemplar.discordbot.model.exception.NoSuchCharacterException;
-import com.titaniumtemplar.discordbot.model.monster.MonsterTemplate;
-import com.titaniumtemplar.discordbot.model.stats.StatConfig;
-import com.titaniumtemplar.discordbot.model.stats.StatConfig.StatConfigBuilder;
-import com.titaniumtemplar.discordbot.model.stats.StatLevelScale;
-import com.titaniumtemplar.discordbot.model.stats.StatSkillScale;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import javax.inject.Inject;
-import lombok.RequiredArgsConstructor;
-import org.jooq.DSLContext;
-import org.springframework.stereotype.Repository;
-
 import static com.titaniumtemplar.db.jooq.tables.Character.CHARACTER;
+import static com.titaniumtemplar.db.jooq.tables.CharacterSkill.CHARACTER_SKILL;
 import static com.titaniumtemplar.db.jooq.tables.GuildCombatChannels.GUILD_COMBAT_CHANNELS;
 import static com.titaniumtemplar.db.jooq.tables.GuildSettings.GUILD_SETTINGS;
 import static com.titaniumtemplar.db.jooq.tables.Monster.MONSTER;
@@ -30,220 +10,289 @@ import static com.titaniumtemplar.db.jooq.tables.StatLevelScale.STAT_LEVEL_SCALE
 import static com.titaniumtemplar.db.jooq.tables.StatSkillScale.STAT_SKILL_SCALE;
 import static com.titaniumtemplar.db.jooq.tables.VitalScale.VITAL_SCALE;
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.toList;
+import static org.jooq.lambda.Seq.seq;
 
+import com.titaniumtemplar.db.jooq.enums.SkillType;
+import com.titaniumtemplar.db.jooq.tables.CharacterSkill;
+import com.titaniumtemplar.db.jooq.tables.records.CharacterRecord;
+import com.titaniumtemplar.db.jooq.tables.records.CharacterSkillRecord;
 import com.titaniumtemplar.db.jooq.tables.records.GuildCombatChannelsRecord;
+import com.titaniumtemplar.db.jooq.tables.records.MonsterRecord;
+import com.titaniumtemplar.db.jooq.tables.records.SkillScaleRecord;
+import com.titaniumtemplar.db.jooq.tables.records.VitalScaleRecord;
 import com.titaniumtemplar.discordbot.discord.GuildSettings;
+import com.titaniumtemplar.discordbot.model.character.CharStats;
+import com.titaniumtemplar.discordbot.model.character.Skill;
+import com.titaniumtemplar.discordbot.model.exception.NoSuchCharacterException;
+import com.titaniumtemplar.discordbot.model.monster.MonsterTemplate;
+import com.titaniumtemplar.discordbot.model.stats.StatConfig;
+import com.titaniumtemplar.discordbot.model.stats.StatConfig.StatConfigBuilder;
+import com.titaniumtemplar.discordbot.model.stats.StatLevelScale;
+import com.titaniumtemplar.discordbot.model.stats.StatSkillScale;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Stream;
+import javax.inject.Inject;
+import lombok.RequiredArgsConstructor;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.Result;
+import org.jooq.Table;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
-public class CyberscapeRepository
-{
-  private final DSLContext db;
+public class CyberscapeRepository {
 
-  public StatConfig getStatConfig()
-  {
-    StatConfigBuilder statConfigBuilder = StatConfig.builder();
+	private final DSLContext db;
 
-    SkillScaleRecord skillScale = db.selectFrom(SKILL_SCALE)
-      .fetchOne();
+	private static final com.titaniumtemplar.db.jooq.tables.Character C_EXCLUDED = CHARACTER.as("excluded");
+	private static final CharacterSkill CS_EXCLUDED = CHARACTER_SKILL.as("excluded");
 
-    VitalScaleRecord vitalScale = db.selectFrom(VITAL_SCALE)
-      .fetchOne();
+	private static <R extends Record> void bulkInsert(List<R> recordList, Table<R> table, DSLContext dbConnection) {
+		if (recordList.isEmpty()) {
+			return;
+		}
 
-    statConfigBuilder
-      .spec1Start(skillScale.getSpec1Start())
-      .spec2Start(skillScale.getSpec2Start())
-      .spPerLevel(skillScale.getSpPerLevel())
-      .spPerLevelGap(skillScale.getSpPerLevelGap())
-      .spIncAmount(skillScale.getSpIncAmount())
-      .spCostPerRank(skillScale.getSpCostPerRank())
-      .spCostPerRankGap(skillScale.getSpCostPerRankGap())
-      .spCostIncAmount(skillScale.getSpCostIncAmount())
-      .hpBase(vitalScale.getHpBase())
-      .hpPerVit(vitalScale.getHpPerVit())
-      .mpBase(vitalScale.getMpBase())
-      .mpPerInt(vitalScale.getMpPerInt())
-      .mpPerWis(vitalScale.getMpPerWis());
+		seq(recordList.subList(0, recordList.size() - 1))
+			.foldLeft(
+				dbConnection.insertInto(table),
+				(insertQuery, record) -> insertQuery.set(record).newRecord())
+			.set(recordList.get(recordList.size() - 1))
+			.execute();
+	}
 
-    db.selectFrom(STAT_LEVEL_SCALE)
-      .forEach((record) -> statConfigBuilder.statLevelScale(
-        record.getStat(),
-        StatLevelScale.builder()
-          .base(record.getBase())
-          .perLevel(record.getPerLevel())
-          .perLevelGap(record.getPerLevelGap())
-          .incAmount(record.getIncAmount())
-          .build()));
+	public StatConfig getStatConfig() {
+		StatConfigBuilder statConfigBuilder = StatConfig.builder();
 
-    db.selectFrom(STAT_SKILL_SCALE)
-      .fetchGroups(
-        STAT_SKILL_SCALE.SKILL,
-        (record) -> new StatSkillScale(record.getStat(), record.getPerRank()))
-      .forEach(statConfigBuilder::statSkillScale);
+		SkillScaleRecord skillScale = db.selectFrom(SKILL_SCALE)
+			.fetchOne();
 
-    return statConfigBuilder.build();
-  }
+		VitalScaleRecord vitalScale = db.selectFrom(VITAL_SCALE)
+			.fetchOne();
 
-  public CharStats getCharacter(String uid) {
-    return db.selectFrom(CHARACTER)
-	.where(CHARACTER.USER_ID.eq(uid))
-	.fetchOptional(this::mapCharacter)
-	.orElseThrow(NoSuchCharacterException::new);
-  }
+		statConfigBuilder
+			.spec1Start(skillScale.getSpec1Start())
+			.spec2Start(skillScale.getSpec2Start())
+			.spPerLevel(skillScale.getSpPerLevel())
+			.spPerLevelGap(skillScale.getSpPerLevelGap())
+			.spIncAmount(skillScale.getSpIncAmount())
+			.spCostPerRank(skillScale.getSpCostPerRank())
+			.spCostPerRankGap(skillScale.getSpCostPerRankGap())
+			.spCostIncAmount(skillScale.getSpCostIncAmount())
+			.hpBase(vitalScale.getHpBase())
+			.hpPerVit(vitalScale.getHpPerVit())
+			.mpBase(vitalScale.getMpBase())
+			.mpPerInt(vitalScale.getMpPerInt())
+			.mpPerWis(vitalScale.getMpPerWis());
 
-  public CharStats createCharacter(String uid) {
-    CharacterRecord newChar = db.newRecord(CHARACTER);
-    newChar.setId(randomUUID());
-    newChar.setUserId(uid);
-    newChar.setLevel(1);
-    newChar.setXp(0);
-    newChar.setHpCurrent(-1);
-    newChar.setMpCurrent(-1);
-    newChar.setFire(0);
-    newChar.setFireSpec1Name("");
-    newChar.setFireSpec1Value(0);
-    newChar.setFireSpec2Name("");
-    newChar.setFireSpec2Value(0);
-    newChar.setWater(0);
-    newChar.setWaterSpec1Name("");
-    newChar.setWaterSpec1Value(0);
-    newChar.setWaterSpec2Name("");
-    newChar.setWaterSpec2Value(0);
-    newChar.setLightning(0);
-    newChar.setLightningSpec1Name("");
-    newChar.setLightningSpec1Value(0);
-    newChar.setLightningSpec2Name("");
-    newChar.setLightningSpec2Value(0);
-    newChar.setWind(0);
-    newChar.setWindSpec1Name("");
-    newChar.setWindSpec1Value(0);
-    newChar.setWindSpec2Name("");
-    newChar.setWindSpec2Value(0);
-    newChar.setEarth(0);
-    newChar.setEarthSpec1Name("");
-    newChar.setEarthSpec1Value(0);
-    newChar.setEarthSpec2Name("");
-    newChar.setEarthSpec2Value(0);
-    newChar.setSonic(0);
-    newChar.setSonicSpec1Name("");
-    newChar.setSonicSpec1Value(0);
-    newChar.setSonicSpec2Name("");
-    newChar.setSonicSpec2Value(0);
-    newChar.setPersonal(0);
-    newChar.setPersonalSpec1Name("");
-    newChar.setPersonalSpec1Value(0);
-    newChar.setPersonalSpec2Name("");
-    newChar.setPersonalSpec2Value(0);
-    newChar.setMaterial(0);
-    newChar.setMaterialSpec1Name("");
-    newChar.setMaterialSpec1Value(0);
-    newChar.setMaterialSpec2Name("");
-    newChar.setMaterialSpec2Value(0);
-    newChar.setShift(0);
-    newChar.setShiftSpec1Name("");
-    newChar.setShiftSpec1Value(0);
-    newChar.setShiftSpec2Name("");
-    newChar.setShiftSpec2Value(0);
-    newChar.setLife(0);
-    newChar.setLifeSpec1Name("");
-    newChar.setLifeSpec1Value(0);
-    newChar.setLifeSpec2Name("");
-    newChar.setLifeSpec2Value(0);
-    newChar.setSpace(0);
-    newChar.setSpaceSpec1Name("");
-    newChar.setSpaceSpec1Value(0);
-    newChar.setSpaceSpec2Name("");
-    newChar.setSpaceSpec2Value(0);
-    newChar.setGravity(0);
-    newChar.setGravitySpec1Name("");
-    newChar.setGravitySpec1Value(0);
-    newChar.setGravitySpec2Name("");
-    newChar.setGravitySpec2Value(0);
+		db.selectFrom(STAT_LEVEL_SCALE)
+			.forEach((record) -> statConfigBuilder.statLevelScale(
+			record.getStat(),
+			StatLevelScale.builder()
+				.base(record.getBase())
+				.perLevel(record.getPerLevel())
+				.perLevelGap(record.getPerLevelGap())
+				.incAmount(record.getIncAmount())
+				.build()));
 
-    newChar.store();
+		db.selectFrom(STAT_SKILL_SCALE)
+			.fetchGroups(
+				STAT_SKILL_SCALE.SKILL,
+				(record) -> new StatSkillScale(record.getStat(), record.getPerRank()))
+			.forEach(statConfigBuilder::statSkillScale);
 
-    return mapCharacter(newChar);
-  }
+		return statConfigBuilder.build();
+	}
 
-  private CharStats mapCharacter(CharacterRecord record) {
-    CharStats cs = new CharStats();
-    cs.setId(record.getId());
-    cs.setUserId(record.getUserId());
-    cs.setHpCurrent(record.getHpCurrent());
-    cs.setMpCurrent(record.getMpCurrent());
-    cs.setXp(record.getXp());
-    cs.setLevel(record.getLevel());
+	public CharStats getCharacter(String uid) {
+		return db.selectFrom(CHARACTER)
+			.where(CHARACTER.USER_ID.eq(uid))
+			.fetchOptional(this::mapCharacter)
+			.orElseThrow(NoSuchCharacterException::new);
+	}
 
-    Arrays.stream(SkillType.values())
-	.forEach((skill )-> {
-	  String skillName = skill.getLiteral();
-	  cs.putSkill(skill, Skill.builder()
-	      .ranks(record.get(skillName, Integer.class))
-	      .spec1Name(record.get(skillName + "_spec1_name", String.class))
-	      .spec1Ranks(record.get(skillName + "_spec1_value", Integer.class))
-	      .spec2Name(record.get(skillName + "_spec2_name", String.class))
-	      .spec2Ranks(record.get(skillName + "_spec2_value", Integer.class))
-	      .build());
-	});
+	@Transactional
+	public CharStats createCharacter(String uid, String name) {
+		CharacterRecord newChar = db.newRecord(CHARACTER);
+		UUID charId = randomUUID();
+		newChar.setId(charId);
+		newChar.setUserId(uid);
+		newChar.setName(name);
+		newChar.setLevel(1);
+		newChar.setXp(0);
+		newChar.setHpCurrent(-1);
+		newChar.setMpCurrent(-1);
+		newChar.store();
 
-    return cs;
-  }
+		List<CharacterSkillRecord> skillRecords = Arrays.stream(SkillType.values())
+			.map((skillType) -> {
+				CharacterSkillRecord r = db.newRecord(CHARACTER_SKILL);
+				r.setCharacterId(charId);
+				r.setSkill(skillType);
+				r.setRanks(0);
+				r.setSpec1Name("");
+				r.setSpec1Ranks(0);
+				r.setSpec2Name("");
+				r.setSpec2Ranks(0);
+				return r;
+			})
+			.collect(toList());
+		bulkInsert(skillRecords, CHARACTER_SKILL, db);
 
-  public List<MonsterTemplate> getMonsters() {
-    return db.selectFrom(MONSTER)
-	.fetch(this::mapMonster);
-  }
+		return mapCharacter(newChar, skillRecords);
+	}
 
-  private MonsterTemplate mapMonster(MonsterRecord record) {
-    return MonsterTemplate.builder()
-	.id(record.getId())
-	.name(record.getName())
-	.maxHp(record.getHp())
-	.xp(record.getXp())
-	.build();
-  }
+	private CharStats mapCharacter(CharacterRecord record) {
 
-  public void awardXp(
-      Collection<String> participantUids,
-      int xp,
-      Collection<String> levelups) {
-    db.update(CHARACTER)
-	.set(CHARACTER.XP, CHARACTER.XP.plus(xp))
-	.where(CHARACTER.USER_ID.in(participantUids))
-	.execute();
+		Result<CharacterSkillRecord> skillRecords = db.selectFrom(CHARACTER_SKILL)
+			.where(CHARACTER_SKILL.CHARACTER_ID.eq(record.getId()))
+			.fetch();
 
-    db.update(CHARACTER)
-	.set(CHARACTER.LEVEL, CHARACTER.LEVEL.plus(1))
-	.where(CHARACTER.USER_ID.in(levelups))
-	.execute();
-  }
+		return mapCharacter(record, skillRecords);
+	}
 
-  public GuildSettings getGuildSettings(String guildId) {
-    GuildSettings.GuildSettingsBuilder builder = db.selectFrom(GUILD_SETTINGS)
-	.where(GUILD_SETTINGS.GUILD_ID.eq(guildId))
-	.fetchOptional((record) -> GuildSettings.builder()
-	    .defaultRoleId(record.getDefaultRoleId()))
-	.orElseGet(GuildSettings::builder);
+	private CharStats mapCharacter(
+		CharacterRecord record,
+		Collection<CharacterSkillRecord> skillRecords) {
+		CharStats cs = new CharStats();
+		cs.setId(record.getId());
+		cs.setUserId(record.getUserId());
+		cs.setName(record.getName());
+		cs.setHpCurrent(record.getHpCurrent());
+		cs.setMpCurrent(record.getMpCurrent());
+		cs.setXp(record.getXp());
+		cs.setLevel(record.getLevel());
 
-    db.selectFrom(GUILD_COMBAT_CHANNELS)
-	.where(GUILD_COMBAT_CHANNELS.GUILD_ID.eq(guildId))
-	.forEach((cc) -> builder.combatChannel(cc.getChannelId()));
+		skillRecords.forEach((r) -> {
+			SkillType skill = r.getSkill();
+			String skillName = skill.getLiteral();
+			cs.putSkill(skill, Skill.builder()
+				.ranks(r.getRanks())
+				.spec1Name(r.getSpec1Name())
+				.spec1Ranks(r.getSpec1Ranks())
+				.spec2Name(r.getSpec2Name())
+				.spec2Ranks(r.getSpec2Ranks())
+				.build());
+		});
 
-    return builder.build();
-  }
+		return cs;
+	}
 
-  public void addCombatChannel(String gid, String channelId) {
-    GuildCombatChannelsRecord gcc = db.newRecord(GUILD_COMBAT_CHANNELS);
-    gcc.setGuildId(gid);
-    gcc.setChannelId(channelId);
-    gcc.insert();
-  }
+	@Transactional
+	public void updateCharacters(
+		Collection<CharStats> characters) {
 
-  public void removeCombatChannel(String gid, String channelId) {
-    db.deleteFrom(GUILD_COMBAT_CHANNELS)
-	.where(
-	    GUILD_COMBAT_CHANNELS.GUILD_ID.eq(gid),
-	    GUILD_COMBAT_CHANNELS.CHANNEL_ID.eq(channelId))
-	.execute();
-  }
+		List<CharacterRecord> records = new ArrayList<>(characters.size());
+		List<CharacterSkillRecord> csRecords = characters.stream()
+			.peek((c) -> records.add(mapRecord(c)))
+			.flatMap(this::mapSkillRecords)
+			.collect(toList());
+
+		seq(records.subList(0, records.size() - 1))
+			.foldLeft(
+				db.insertInto(CHARACTER),
+				(insert, record) -> insert.set(record).newRecord())
+			.set(records.get(records.size() - 1))
+			.onDuplicateKeyUpdate()
+			.set(CHARACTER.LEVEL, C_EXCLUDED.LEVEL)
+			.set(CHARACTER.XP, C_EXCLUDED.XP)
+			.set(CHARACTER.HP_CURRENT, C_EXCLUDED.HP_CURRENT)
+			.set(CHARACTER.MP_CURRENT, C_EXCLUDED.MP_CURRENT)
+			.execute();
+
+		seq(csRecords.subList(0, csRecords.size() - 1))
+			.foldLeft(
+				db.insertInto(CHARACTER_SKILL),
+				(insert, record) -> insert.set(record).newRecord())
+			.set(csRecords.get(csRecords.size() - 1))
+			.onDuplicateKeyUpdate()
+			.set(CHARACTER_SKILL.RANKS, CS_EXCLUDED.RANKS)
+			.set(CHARACTER_SKILL.SPEC1_NAME, CS_EXCLUDED.SPEC1_NAME)
+			.set(CHARACTER_SKILL.SPEC1_RANKS, CS_EXCLUDED.SPEC1_RANKS)
+			.set(CHARACTER_SKILL.SPEC2_NAME, CS_EXCLUDED.SPEC2_NAME)
+			.set(CHARACTER_SKILL.SPEC2_RANKS, CS_EXCLUDED.SPEC2_RANKS)
+			.execute();
+	}
+
+	public GuildSettings getGuildSettings(String guildId) {
+		GuildSettings.GuildSettingsBuilder builder = db.selectFrom(GUILD_SETTINGS)
+			.where(GUILD_SETTINGS.GUILD_ID.eq(guildId))
+			.fetchOptional((record) -> GuildSettings.builder()
+			.defaultRoleId(record.getDefaultRoleId()))
+			.orElseGet(GuildSettings::builder);
+
+		db.selectFrom(GUILD_COMBAT_CHANNELS)
+			.where(GUILD_COMBAT_CHANNELS.GUILD_ID.eq(guildId))
+			.forEach((cc) -> builder.combatChannel(cc.getChannelId()));
+
+		return builder.build();
+	}
+
+	private CharacterRecord mapRecord(CharStats c) {
+		CharacterRecord r = db.newRecord(CHARACTER);
+
+		r.setId(c.getId());
+		r.setUserId(c.getUserId());
+		r.setHpCurrent(c.getHpCurrent());
+		r.setMpCurrent(c.getMpCurrent());
+		r.setXp(c.getXp());
+		r.setLevel(c.getLevel());
+
+		return r;
+	}
+
+	private Stream<CharacterSkillRecord> mapSkillRecords(CharStats c) {
+
+		return Arrays.stream(SkillType.values())
+			.map((skillType) -> {
+				CharacterSkillRecord r = db.newRecord(CHARACTER_SKILL);
+				String skillName = skillType.getLiteral();
+				Skill skill = c.getSkills().get(skillType);
+
+				r.setCharacterId(c.getId());
+				r.setSkill(skillType);
+				r.setRanks(skill.getRanks());
+				r.setSpec1Name(skill.getSpec1Name());
+				r.setSpec1Ranks(skill.getSpec1Ranks());
+				r.setSpec2Name(skill.getSpec2Name());
+				r.setSpec2Ranks(skill.getSpec2Ranks());
+
+				return r;
+			});
+	}
+
+	public List<MonsterTemplate> getMonsters() {
+		return db.selectFrom(MONSTER)
+			.fetch(this::mapMonster);
+	}
+
+	private MonsterTemplate mapMonster(MonsterRecord record) {
+		return MonsterTemplate.builder()
+			.id(record.getId())
+			.name(record.getName())
+			.maxHp(record.getHp())
+			.xp(record.getXp())
+			.build();
+	}
+
+	public void addCombatChannel(String gid, String channelId) {
+		GuildCombatChannelsRecord gcc = db.newRecord(GUILD_COMBAT_CHANNELS);
+		gcc.setGuildId(gid);
+		gcc.setChannelId(channelId);
+		gcc.insert();
+	}
+
+	public void removeCombatChannel(String gid, String channelId) {
+		db.deleteFrom(GUILD_COMBAT_CHANNELS)
+			.where(
+				GUILD_COMBAT_CHANNELS.GUILD_ID.eq(gid),
+				GUILD_COMBAT_CHANNELS.CHANNEL_ID.eq(channelId))
+			.execute();
+	}
 }

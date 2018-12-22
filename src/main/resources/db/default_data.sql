@@ -95,5 +95,31 @@ INSERT INTO monster (id, name, hp, xp) VALUES
  ('f59eec6c-2fd1-4c32-bf9f-7ce548d2ad0b', 'The Innkeeper''s Door', 10000, 10000);
 
 INSERT INTO character VALUES
- ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'roland', 50, 1500000, -1, -1, 15, 'Burn', 5, '', 0, 15, 'Freeze', 5, '', 0, 15, 'Shock', 5, '', 0, 15, 'Stagger', 5, '', 0, 15, 'Root', 5, '', 0, 15, 'Deafen', 5, '', 0, 15, 'Martial Training', 5, '', 0, 20, 'Bestow', 10, '', 0, 4, '', 0, '', 0, 39, 'Animate', 25, '', 0, 20, 'Summon', 10, '', 0, 20, 'Flight', 10, '', 0),
- ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'hyperion', 50, 1500000, -1, -1, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 97, '', 0, '', 0, 9, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0, 0, '', 0, '', 0);
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'roland', 50, -1, -1, -1),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'hyperion', 50, -1, -1, -1);
+
+INSERT INTO character_skill VALUES
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'fire', 15, 'Burn', 5, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'water', 15, 'Freeze', 5, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'lightning', 15, 'Shock', 5, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'wind', 15, 'Stagger', 5, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'earth', 15, 'Root', 5, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'sonic', 15, 'Deafen', 5, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'personal', 15, 'Martial Training', 5, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'material', 20, 'Bestow', 10, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'shift', 4, '', 0, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'life', 39, 'Animate', 25, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'space', 20, 'Summon', 10, '', 0),
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'gravity', 20, 'Flight', 10, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'fire', 0, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'water', 0, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'lightning', 0, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'wind', 0, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'earth', 0, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'sonic', 0, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'personal', 97, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'material', 9, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'shift', 0, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'life', 0, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'space', 0, '', 0, '', 0),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'gravity', 0, '', 0, '', 0);

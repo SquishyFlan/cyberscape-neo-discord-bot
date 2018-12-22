@@ -15,28 +15,28 @@ import net.dv8tion.jda.core.entities.User;
 @RequiredArgsConstructor(staticName = "withArgs")
 public class ProfileCommand implements DiscordCommand {
 
-  private final List<String> splitCommand;
+	private final List<String> splitCommand;
 
-  @Override
-  public void run(
-      CyberscapeService service,
-      Myra myra,
-      Message message,
-      User author,
-      Member member) {
-    try {
-      try {
-	service.getCharacter(author.getId());
-      } catch (NoSuchCharacterException ex) {
-	sendDm(author, "No profile found! Please use \".register\" to register an account.");
-	return;
-      }
+	@Override
+	public void run(
+		CyberscapeService service,
+		Myra myra,
+		Message message,
+		User author,
+		Member member) {
+		try {
+			try {
+				service.getCharacter(author.getId());
+			} catch (NoSuchCharacterException ex) {
+				sendDm(author, "No profile found! Please use \".register\" to register an account.");
+				return;
+			}
 
-      sendDm(author, "Check your profile at <" + myra.getBaseUrl() + "profile/>!");
+			sendDm(author, "Check your profile at <" + myra.getBaseUrl() + "profile/>!");
 
-    } finally {
-      deleteMessage(message);
-    }
-  }
+		} finally {
+			deleteMessage(message);
+		}
+	}
 
 }

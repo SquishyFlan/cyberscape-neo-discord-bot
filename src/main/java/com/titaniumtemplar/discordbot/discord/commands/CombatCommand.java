@@ -48,14 +48,17 @@ public abstract class CombatCommand implements DiscordCommand {
 			character.setName(member.getEffectiveName());
 			Specialization specialization = getSpecialization();
 
-			if (specialization == UNKNOWN) {
-				sendDm(author, "I'm sorry, I didn't recognize that specialization!");
-				return;
-			} else if (specialization != null && !canSpecialize()) {
-				sendDm(author, "I'm sorry, but that attack type cannot specialize!");
-				return;
-			} else if (!character.getSpecs().contains(specialization)) {
-				sendDm(author, "I'm sorry, but your character doesn't know that specialization!");
+			if (specialization != null) {
+				if (specialization == UNKNOWN) {
+					sendDm(author, "I'm sorry, I didn't recognize that specialization!");
+					return;
+				} else if (!canSpecialize()) {
+					sendDm(author, "I'm sorry, but that attack type cannot specialize!");
+					return;
+				} else if (!character.getSpecs().contains(specialization)) {
+					sendDm(author, "I'm sorry, but your character doesn't know that specialization!");
+					return;
+				}
 			}
 
 			synchronized (combat) {

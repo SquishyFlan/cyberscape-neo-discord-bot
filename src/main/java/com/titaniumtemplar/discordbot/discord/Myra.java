@@ -169,18 +169,25 @@ public class Myra extends ListenerAdapter {
 	@Override
 	public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event) {
 		Combat combat = getCombatForReaction(event);
+		if (combat == null) {
+			return;
+		}
 
 		List<String> command = getCommandForEmoji(event.getReactionEmote());
 		if (command.isEmpty()) {
 			return;
 		}
 
-		runCommand(command, combat.getMessage(), event.getUser(), event.getMember());
+		runCommand(command, null, event.getUser(), event.getMember());
 	}
 
 	@Override
 	public void onGuildMessageReactionRemove(GuildMessageReactionRemoveEvent event) {
 		Combat combat = getCombatForReaction(event);
+		if (combat == null) {
+			return;
+		}
+
 		String userId = event.getUser().getId();
 		synchronized (combat) {
 			combat.removeAttack(userId);

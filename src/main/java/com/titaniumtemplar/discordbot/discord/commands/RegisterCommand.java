@@ -15,30 +15,30 @@ import net.dv8tion.jda.core.entities.User;
 @RequiredArgsConstructor(staticName = "withArgs")
 public class RegisterCommand implements DiscordCommand {
 
-  private final List<String> splitCommand;
+	private final List<String> splitCommand;
 
-  @Override
-  public void run(
-      CyberscapeService service,
-      Myra myra,
-      Message message,
-      User author,
-      Member member) {
-    try {
-      try {
-	service.getCharacter(author.getId());
-	sendDm(author, "You're already registered! Check your profile at <" + myra.getBaseUrl() + "profile/>!");
-	return;
-      } catch (NoSuchCharacterException ex) {
-	// Expected
-      }
+	@Override
+	public void run(
+		CyberscapeService service,
+		Myra myra,
+		Message message,
+		User author,
+		Member member) {
+		try {
+			try {
+				service.getCharacter(author.getId());
+				sendDm(author, "You're already registered! Check your profile at <" + myra.getBaseUrl() + "profile/>!");
+				return;
+			} catch (NoSuchCharacterException ex) {
+				// Expected
+			}
 
-      service.createCharacter(author.getId());
-      sendDm(author, "Thank you for registering your account! Check your profile at <" + myra.getBaseUrl() + "profile/>!");
+			service.createCharacter(author.getId(), member.getEffectiveName());
+			sendDm(author, "Thank you for registering your account! Check your profile at <" + myra.getBaseUrl() + "profile/>!");
 
-    } finally {
-      deleteMessage(message);
-    }
-  }
+		} finally {
+			deleteMessage(message);
+		}
+	}
 
 }

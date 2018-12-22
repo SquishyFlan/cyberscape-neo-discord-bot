@@ -1,73 +1,14 @@
 CREATE TABLE character (
   id UUID NOT NULL PRIMARY KEY,
   user_id VARCHAR NOT NULL,
+  name VARCHAR NOT NULL,
   level INT NOT NULL,
   xp INT NOT NULL,
   hp_current INT NOT NULL,
-  mp_current INT NOT NULL,
-  fire INT NOT NULL,
-  fire_spec1_name VARCHAR NOT NULL,
-  fire_spec1_value INT NOT NULL,
-  fire_spec2_name VARCHAR NOT NULL,
-  fire_spec2_value INT NOT NULL,
-  water INT NOT NULL,
-  water_spec1_name VARCHAR NOT NULL,
-  water_spec1_value INT NOT NULL,
-  water_spec2_name VARCHAR NOT NULL,
-  water_spec2_value INT NOT NULL,
-  lightning INT NOT NULL,
-  lightning_spec1_name VARCHAR NOT NULL,
-  lightning_spec1_value INT NOT NULL,
-  lightning_spec2_name VARCHAR NOT NULL,
-  lightning_spec2_value INT NOT NULL,
-  wind INT NOT NULL,
-  wind_spec1_name VARCHAR NOT NULL,
-  wind_spec1_value INT NOT NULL,
-  wind_spec2_name VARCHAR NOT NULL,
-  wind_spec2_value INT NOT NULL,
-  earth INT NOT NULL,
-  earth_spec1_name VARCHAR NOT NULL,
-  earth_spec1_value INT NOT NULL,
-  earth_spec2_name VARCHAR NOT NULL,
-  earth_spec2_value INT NOT NULL,
-  sonic INT NOT NULL,
-  sonic_spec1_name VARCHAR NOT NULL,
-  sonic_spec1_value INT NOT NULL,
-  sonic_spec2_name VARCHAR NOT NULL,
-  sonic_spec2_value INT NOT NULL,
-  personal INT NOT NULL,
-  personal_spec1_name VARCHAR NOT NULL,
-  personal_spec1_value INT NOT NULL,
-  personal_spec2_name VARCHAR NOT NULL,
-  personal_spec2_value INT NOT NULL,
-  material INT NOT NULL,
-  material_spec1_name VARCHAR NOT NULL,
-  material_spec1_value INT NOT NULL,
-  material_spec2_name VARCHAR NOT NULL,
-  material_spec2_value INT NOT NULL,
-  shift INT NOT NULL,
-  shift_spec1_name VARCHAR NOT NULL,
-  shift_spec1_value INT NOT NULL,
-  shift_spec2_name VARCHAR NOT NULL,
-  shift_spec2_value INT NOT NULL,
-  life INT NOT NULL,
-  life_spec1_name VARCHAR NOT NULL,
-  life_spec1_value INT NOT NULL,
-  life_spec2_name VARCHAR NOT NULL,
-  life_spec2_value INT NOT NULL,
-  space INT NOT NULL,
-  space_spec1_name VARCHAR NOT NULL,
-  space_spec1_value INT NOT NULL,
-  space_spec2_name VARCHAR NOT NULL,
-  space_spec2_value INT NOT NULL,
-  gravity INT NOT NULL,
-  gravity_spec1_name VARCHAR NOT NULL,
-  gravity_spec1_value INT NOT NULL,
-  gravity_spec2_name VARCHAR NOT NULL,
-  gravity_spec2_value INT NOT NULL
+  mp_current INT NOT NULL
 );
 
-CREATE INDEX ON character (user_id);
+CREATE UNIQUE INDEX ON character (user_id);
 
 CREATE TYPE skill_type AS ENUM (
   'fire',
@@ -91,6 +32,17 @@ CREATE TYPE stat_type AS ENUM (
   'dex',
   'int',
   'wis'
+);
+
+CREATE TABLE character_skill (
+  character_id UUID NOT NULL,
+  skill skill_type NOT NULL,
+  ranks INT NOT NULL,
+  spec1_name VARCHAR NOT NULL,
+  spec1_ranks INT NOT NULL,
+  spec2_name VARCHAR NOT NULL,
+  spec2_ranks INT NOT NULL,
+  PRIMARY KEY (character_id, skill)
 );
 
 CREATE TABLE skill_scale (
@@ -145,6 +97,7 @@ CREATE TABLE guild_combat_channels (
 );
 
 GRANT SELECT,INSERT,UPDATE,DELETE ON character TO cyberscape;
+GRANT SELECT,INSERT,UPDATE,DELETE ON character_skill TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON skill_scale TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON stat_level_scale TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON stat_skill_scale TO cyberscape;
