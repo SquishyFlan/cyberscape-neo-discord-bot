@@ -62,6 +62,26 @@ public class CharStats {
 	// Set from Discord/Auth
 	private String name;
 
+	public CharStats clone() {
+		CharStats cs = new CharStats();
+		cs.setId(id);
+		cs.setUserId(userId);
+		cs.setHpCurrent(hpCurrent);
+		cs.setHpMax(hpMax);
+		cs.setXp(xp);
+		cs.setLevel(level);
+		cs.setSpecs(new HashSet<>(specs));
+		skills.forEach((skillType, skill) ->
+			cs.putSkill(skillType, Skill.builder()
+				.ranks(skill.getRanks())
+				.spec1Name(skill.getSpec1Name())
+				.spec1Ranks(skill.getSpec1Ranks())
+				.spec2Name(skill.getSpec2Name())
+				.spec2Ranks(skill.getSpec2Ranks())
+				.build()));
+		return cs;
+	}
+
 	public void calcStats(StatConfig config) {
 		spTotal = 0;
 		int spPerLevel = config.getSpPerLevel();
@@ -105,25 +125,49 @@ public class CharStats {
 			.forEach((skillType) -> {
 				Skill skill = skills.get(skillType);
 				int ranks = skill.getRanks();
+
+				skill.setNextRankCost(
+					spCostPerRank + (spCostIncAmount * ranks / spCostRankGap));
+
 				int skillSpUsed = 0;
 				if (ranks >= spec1Start) {
 					int specRanks = skill.getSpec1Ranks();
-					int costPerRank = spCostPerRank + ((spCostIncAmount * spec1Start / spCostRankGap));
+					if (specRanks == 0) {
+						skill.setSpec1Available(true);
+					}
+
+					skill.setNextSpec1RankCost(
+						spCostPerRank + (spCostIncAmount * spec1Start / spCostRankGap)
+						+ (spCostIncAmount * specRanks / spCostRankGap));
+
+					int costPerRank = spCostPerRank + (spCostIncAmount * spec1Start / spCostRankGap);
 					while (specRanks > 0) {
 						skillSpUsed += costPerRank * specRanks;
 						specRanks -= spCostRankGap;
 						costPerRank = spCostIncAmount;
 					}
+				} else {
+					skill.setNextSpec1RankCost(0);
 				}
 
 				if (ranks >= spec2Start) {
 					int specRanks = skill.getSpec2Ranks();
-					int costPerRank = spCostPerRank + ((spCostIncAmount * spec2Start / spCostRankGap));
+					if (specRanks == 0) {
+						skill.setSpec2Available(true);
+					}
+
+					skill.setNextSpec2RankCost(
+						spCostPerRank + (spCostIncAmount * spec2Start / spCostRankGap)
+						+ (spCostIncAmount * specRanks / spCostRankGap));
+
+					int costPerRank = spCostPerRank + (spCostIncAmount * spec2Start / spCostRankGap);
 					while (specRanks > 0) {
 						skillSpUsed += costPerRank * specRanks;
 						specRanks -= spCostRankGap;
 						costPerRank = spCostIncAmount;
 					}
+				} else {
+					skill.setNextSpec2RankCost(0);
 				}
 
 				int costPerRank = spCostPerRank;
@@ -142,9 +186,6 @@ public class CharStats {
 				statSkillScales.get(skillType)
 					.forEach((scale) -> stats.get(scale.getStat())
 					.addAndGet(totalSkillSpUsed * scale.getPerSp()));
-//
-//				skill.setNextRankCost(
-//					spCostPerRank + (spCostIncAmount * ranks / spCostRankGap));
 			});
 
 		spLeft = spTotal - spUsed;

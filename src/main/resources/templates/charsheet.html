@@ -6,9 +6,12 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <script src="http://cdn.jsdelivr.net/webjars/jquery/3.3.1/jquery.min.js"
 		th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+    <script src="/js/charsheet.js"
+		th:src="@{/js/charsheet.js}"></script>
 		<script th:inline="javascript">
 			originalChar = [[${character}]];
 			statConfig = [[${statConfig}]];
+			readOnly = [[${readOnly}]];
 		</script>
     <link rel="stylesheet" href="/css/charsheet.css"
 					th:href="@{/css/charsheet.css}" media="screen" />
@@ -56,40 +59,61 @@
             <div id="spBar"></div>
           </div>
 					<div class="stat" th:each="stat : ${T(com.titaniumtemplar.db.jooq.enums.StatType).values()}" th:id="${stat.literal}">
-						<span id="strLabel" th:text="${#strings.toUpperCase(stat.literal)}"></span>
-						<span id="starValue" th:text="${character.stats.get(stat).get()}">10</span>
+						<span th:id="|${stat.literal}Label|" th:text="${#strings.toUpperCase(stat.literal)}"></span>
+						<span th:id="|${stat.literal}Value|" th:text="${character.stats.get(stat).get()}">10</span>
 					</div>
         </div>
 
       </div>
 
       <div class="section" id="skills" th:with="clusters = ${ {'Elemental', 'Natural', 'Physical', 'Mystical'} }">
+				<input type="button" value="Save" id="save" class="hidden" />
+				<input type="button" value="Reset" id="reset" class="hidden" />
 
 				<div class="skill" th:each="skill : ${T(com.titaniumtemplar.db.jooq.enums.SkillType).values()}" th:id="${skill.literal}">
 					<span th:if="${skillStat.index % 3 == 0}" class="skillCluster" th:text="${clusters[skillStat.index / 3]}">Elemental</span>
 					<div class="skillBlock">
 						<span class="skillLabel" th:id="|${skill.literal}Label|" th:text="${#strings.capitalize(skill.literal)}">Fire</span>
 						<span class="skillValue" th:id="|${skill.literal}Value|" th:text="${character.skills.get(skill).ranks}">16</span>
-						<input type="button" value="-" class="hidden" th:id="|${skill.literal}Decrement|" />
-						<input type="button" value="+" class="hidden" th:id="|${skill.literal}Increment|" />
+						<input type="button" value="-" class="dec hidden"
+									 th:data-skill-type="${skill.literal}"
+									 data-skill-field="ranks" th:id="|${skill.literal}Decrement|" />
+						<input type="button" value="+" class="inc hidden"
+									 th:data-skill-type="${skill.literal}"
+									 data-skill-field="ranks" th:id="|${skill.literal}Increment|" />
+						<span class="skillCost" th:id="|${skill.literal}Cost|">0</span>
 						<div class="specializations">
-							<div th:class="${character.skills.get(skill).spec1Ranks}? '' : 'hidden'">
-								<span class="specLabel" th:id="|${skill.literal}Spec1Label|" th:text="${character.skills.get(skill).spec1Name}"></span>
-								<span class="specRanks" th:id="|${skill.literal}Spec1Ranks|" th:text="${character.skills.get(skill).spec1Ranks}"></span>
+							<div>
+								<span th:class="${character.skills.get(skill).spec1Ranks}? 'specLabel' : 'specLabel hidden'"
+											th:id="|${skill.literal}Spec1Label|"
+											th:text="${character.skills.get(skill).spec1Name}"></span>
+								<span th:class="${character.skills.get(skill).spec1Ranks}? 'specRanks' : 'specRanks hidden'"
+											th:id="|${skill.literal}Spec1Ranks|"
+											th:text="${character.skills.get(skill).spec1Ranks}"></span>
 								<input type="text" class="hidden" th:id="|${skill.literal}Spec1Name|" />
-								<input type="button" value="Specialize!" th:id="|${skill.literal}Spec1Specialize|" />
-								<input type="button" value="-" class="hidden" th:id="|${skill.literal}Spec1Decrement|" />
-								<input type="button" value="+" class="hidden" th:id="|${skill.literal}Spec1Increment|" />
-								<span class="specCost" th:id="|${skill.literal}Spec1Cost|">0</span>
+								<input type="button" value="-" class="hidden"
+											 th:data-skill-type="${skill.literal}"
+											 data-skill-field="spec1Ranks" th:id="|${skill.literal}Spec1Decrement|" />
+								<input type="button" value="+" class="hidden"
+											 th:data-skill-type="${skill.literal}"
+											 data-skill-field="spec1Ranks" th:id="|${skill.literal}Spec1Increment|" />
+								<span class="specCost hidden" th:id="|${skill.literal}Spec1Cost|">0</span>
 							</div>
-							<div th:class="${character.skills.get(skill).spec2Ranks}? '' : 'hidden'">
-								<span class="specLabel" th:id="|${skill.literal}Spec2Label|" th:text="${character.skills.get(skill).spec2Name}"></span>
-								<span class="specRanks" th:id="|${skill.literal}Spec2Ranks|" th:text="${character.skills.get(skill).spec2Ranks}"></span>
+							<div>
+								<span th:class="${character.skills.get(skill).spec2Ranks}? 'specLabel' : 'specLabel hidden'"
+											th:id="|${skill.literal}Spec2Label|"
+											th:text="${character.skills.get(skill).spec2Name}"></span>
+								<span th:class="${character.skills.get(skill).spec2Ranks}? 'specRanks' : 'specRanks hidden'"
+											th:id="|${skill.literal}Spec2Ranks|"
+											th:text="${character.skills.get(skill).spec2Ranks}"></span>
 								<input type="text" class="hidden" th:id="|${skill.literal}Spec2Name|" />
-								<input type="button" value="Specialize!" th:id="|${skill.literal}Spec2Specialize|" />
-								<input type="button" value="-" class="hidden" th:id="|${skill.literal}Spec2Decrement|" />
-								<input type="button" value="+" class="hidden" th:id="|${skill.literal}Spec2Increment|" />
-								<span class="specCost" th:id="|${skill.literal}Spec2Cost|">0</span>
+								<input type="button" value="-" class="hidden"
+											 th:data-skill-type="${skill.literal}"
+											 data-skill-field="spec2Ranks" th:id="|${skill.literal}Spec2Decrement|" />
+								<input type="button" value="+" class="hidden"
+											 th:data-skill-type="${skill.literal}"
+											 data-skill-field="spec2Ranks" th:id="|${skill.literal}Spec2Increment|" />
+								<span class="specCost hidden" th:id="|${skill.literal}Spec2Cost|">0</span>
 							</div>
 						</div>
 						<div class="skillBar" id="fireBar"></div>
