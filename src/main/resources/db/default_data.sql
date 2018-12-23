@@ -1,11 +1,11 @@
 INSERT INTO skill_scale VALUES(11, 41, 6, 5, 1, 1, 10, 1);
 INSERT INTO stat_level_scale VALUES
-  ('str', 10, 5, 10, 5),
-  ('vit', 10, 5, 10, 5),
-  ('spd', 10, 5, 10, 5),
-  ('dex', 10, 5, 10, 5),
-  ('int', 10, 5, 10, 5),
-  ('wis', 10, 5, 10, 5);
+  ('str', 100, 5, 10, 5),
+  ('vit', 100, 5, 10, 5),
+  ('spd', 100, 5, 10, 5),
+  ('dex', 100, 5, 10, 5),
+  ('int', 100, 5, 10, 5),
+  ('wis', 100, 5, 10, 5);
 
 INSERT INTO stat_skill_scale VALUES
   ('fire', 'str', 10),
@@ -82,7 +82,7 @@ INSERT INTO stat_skill_scale VALUES
   ('gravity', 'wis', 8);
 
 INSERT INTO vital_scale VALUES
-  (600, 30, 20, 2, 1);
+  (0, 10, 0, 2, 1);
 
 INSERT INTO monster (id, name, hp, xp) VALUES
  ('269f9976-b499-4f99-8b07-f8c64c34aff3', 'Puddling', 333, 111),

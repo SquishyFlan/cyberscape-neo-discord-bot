@@ -63,7 +63,11 @@ import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+
+import net.dv8tion.jda.core.entities.Role;
+import net.dv8tion.jda.core.managers.GuildController;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
@@ -143,12 +147,79 @@ public class Myra extends ListenerAdapter {
 
 	@Override
 	public void onGuildLeave(GuildLeaveEvent event) {
-		guildMap.remove(event.getGuild().getId());
+		String guildId = event.getGuild().getId();
+		guildMap.remove(guildId);
+		combats.remove(guildId);
 	}
 
 	@Override
 	public void onGuildJoin(GuildJoinEvent event) {
-		joinGuild(event.getGuild());
+		Guild guild = event.getGuild();
+		joinGuild(guild);
+
+		guild.getTextChannelsByName("the-cyberscape", false)
+			.stream()
+			.findFirst()
+			.ifPresent(this::sendMotd1);
+	}
+
+	private void sendMotd1(TextChannel channel) {
+		channel.sendMessage("Initiate Admin Load Transfer: Server Encephalon to Server Titanium Templar")
+			.queue((message) ->
+				combatThreadPool.schedule(
+						() -> sendMotd2(message),
+						COMBAT_ROUND_SECONDS,
+						SECONDS));
+	}
+
+	private void sendMotd2(Message message) {
+		message.editMessage(message.getContentDisplay() + "\nMigration in progress...")
+			.queue((newMessage) ->
+				combatThreadPool.schedule(
+						() -> sendMotd3(newMessage),
+						COMBAT_ROUND_SECONDS,
+						SECONDS));
+	}
+
+	private void sendMotd3(Message message) {
+		message.editMessage(message.getContentDisplay() + "\nLoad transfer complete.")
+			.queue((newMessage) ->
+				combatThreadPool.schedule(
+						() -> sendMotd4(newMessage),
+						COMBAT_ROUND_SECONDS,
+						SECONDS));
+	}
+
+	private void sendMotd4(Message message) {
+		message.editMessage(message.getContentDisplay() + "\nAdmin [Myra] initialized.")
+			.queue((newMessage) ->
+				combatThreadPool.schedule(
+						() -> sendMotd5(newMessage),
+						COMBAT_ROUND_SECONDS,
+						SECONDS));
+	}
+
+	private void sendMotd5(Message message) {
+		message.editMessage(message.getContentDisplay() + "\n_Did you think that you were going to be suck in character select forever? How naïve..._")
+			.queue((newMessage) -> {
+				Guild guild = message.getGuild();
+				Role oldRole = guild.getRolesByName("In Character Select", false).stream().findFirst().get();
+				Role newRole = guild.getRolesByName("Playing Cyberscape Neo", false).stream().findFirst().get();
+				GuildController controller = guild.getController();
+				guild.getMembersWithRoles(oldRole)
+					.forEach((member) -> controller
+						.modifyMemberRoles(member, singleton(newRole), singleton(oldRole))
+						.queue());
+				combatThreadPool.schedule(
+						() -> sendMotd6(newMessage),
+						COMBAT_ROUND_SECONDS,
+						SECONDS);
+			});
+	}
+
+	private void sendMotd6(Message message) {
+		message.editMessage(message.getContentDisplay() + "\nWelcome to Cyberscape Neo.")
+			.queue();
 	}
 
 	@Override
@@ -162,7 +233,7 @@ public class Myra extends ListenerAdapter {
 
 		guild.getController()
 			.addRolesToMember(
-				member, guild.getRolesByName("In Character Select", false))
+				member, guild.getRolesByName("Playing Cyberscape Neo", false))
 			.queue();
 	}
 

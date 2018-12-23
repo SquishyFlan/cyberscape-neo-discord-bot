@@ -112,7 +112,7 @@ function recalcStats() {
 	}
 	inRequest = true;
 	$.ajax({
-		url: "api/statCheck",
+		url: "../api/statCheck",
 		type: "POST",
 		data: JSON.stringify({skills:skillDiff}),
 		contentType: "application/json; charset=utf-8",
@@ -159,7 +159,7 @@ function saveChar() {
 	}
 	inRequest = true;
 	$.ajax({
-		url: "api/character",
+		url: "../api/character",
 		type: "PUT",
 		data: JSON.stringify({skills:skillDiff}),
 		contentType: "application/json; charset=utf-8",
@@ -178,11 +178,17 @@ function saveChar() {
 
 function reset() {
 	tempChar = JSON.parse(tempCharJson);
+	skillDiff = {};
 	recalcStats();
 }
 
 $(document).ready(function () {
 	if (readOnly) {
+		$.each(tempChar.skills, function (skillType, skill) {
+			$("#" + skillType + "Cost").hide();
+			$("#" + skillType + "Spec1Cost").hide();
+			$("#" + skillType + "Spec2Cost").hide();
+		});
 		return;
 	}
 

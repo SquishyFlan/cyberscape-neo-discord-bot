@@ -60,13 +60,13 @@ public class Combat {
 		switch (attack.getAttackType()) {
 			case ATTACK:
 			default:
-				baseDamage = 2.5f * character.getStats().get(str).intValue();
+				baseDamage = character.getStats().get(str).intValue();
 				break;
 			case SHOOT:
-				baseDamage = 2.5f * character.getStats().get(dex).intValue();
+				baseDamage = character.getStats().get(dex).intValue();
 				break;
 			case BOLT:
-				baseDamage = 2.5f * character.getStats().get(int_).intValue();
+				baseDamage = character.getStats().get(int_).intValue();
 				break;
 		}
 
