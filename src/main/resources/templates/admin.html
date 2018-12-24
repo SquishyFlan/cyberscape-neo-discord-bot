@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>Cyberscape Neo Admin Interface</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <script src="http://cdn.jsdelivr.net/webjars/jquery/3.3.1/jquery.min.js"
+		th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+    <script src="/js/admin.js"
+		th:src="@{/js/admin.js}"></script>
+    <link rel="stylesheet" href="/css/charsheet.css"
+					th:href="@{/css/charsheet.css}" media="screen" />
+  </head>
+	<body>
+		<div class="guild" th:each="entry : ${adminGuilds}">
+			<span th:text="${entry.value.name}"></span>
+			<br />
+			Next Combat: <span th:text="${nextCombats.get(entry.key)}">Never</span>
+			<input type="button" class="forceCombat" th:data-guild-id="${entry.key}" value="Force Combat"/>
+		</div>
+	</body>
+</html>

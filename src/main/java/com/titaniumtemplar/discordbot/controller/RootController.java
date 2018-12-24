@@ -28,7 +28,7 @@ public class RootController {
 
 	@GetMapping("")
 	String index() {
-		return "redirect:/profile";
+		return "redirect:/profile/";
 	}
 
 	@GetMapping("profile")

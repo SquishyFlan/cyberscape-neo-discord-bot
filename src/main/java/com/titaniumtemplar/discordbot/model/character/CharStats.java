@@ -237,4 +237,8 @@ public class CharStats {
 	public boolean maxLevel() {
 		return level == MAX_LEVEL;
 	}
+
+	public boolean canLevelUp() {
+		return !maxLevel();
+	}
 }

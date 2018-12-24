@@ -22,19 +22,18 @@ public class DiscordConfig {
   String baseUrl;
 
   @Bean
-  JDA jda(Myra myra) throws Exception {
+  JDA jda() throws Exception {
     return new JDABuilder(BOT)
 	    .setToken(botToken)
-	    .addEventListener(myra)
 	    .build();
   }
 
   @Bean
-  Myra myra(CyberscapeService service) {
+  Myra myra(CyberscapeService service, JDA discord) {
     ScheduledExecutorService combatThreadPool = newScheduledThreadPool(
         1,
         (f) -> new Thread(f, "CombatThread"));
 
-    return new Myra(service, combatThreadPool, baseUrl);
+    return new Myra(service, discord, combatThreadPool, baseUrl);
   }
 }

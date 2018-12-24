@@ -2,7 +2,6 @@ package com.titaniumtemplar.discordbot.discord.commands;
 
 import static com.titaniumtemplar.discordbot.discord.DiscordUtils.deleteMessage;
 import static com.titaniumtemplar.discordbot.discord.DiscordUtils.sendDm;
-import static net.dv8tion.jda.core.Permission.ADMINISTRATOR;
 
 import com.titaniumtemplar.discordbot.discord.Myra;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
@@ -31,12 +30,16 @@ public class ConfigCommand implements DiscordCommand {
 
 		log.info("Config command: {}", splitCommand);
 
-		boolean isAdmin = member.getRoles()
-			.stream()
-			.anyMatch((role) -> role.hasPermission(ADMINISTRATOR));
-
 		try {
-			if (!isAdmin) {
+			if (member == null) {
+				member = myra.getMember(author);
+				if (member == null) {
+					sendDm(author, "I'm sorry, you don't seem to be connected to any Cyberscape Neo compatible server!");
+					return;
+				}
+			}
+
+			if (!myra.isAdmin(member)) {
 				sendDm(author, "I'm sorry, but only admins are permitted to configure me.");
 				return;
 			} else if (splitCommand.size() < 3) {

@@ -188,6 +188,10 @@ public class CyberscapeRepository {
 	public void updateCharacters(
 		Collection<CharStats> characters) {
 
+		if (characters.isEmpty()) {
+			return;
+		}
+
 		List<CharacterRecord> records = new ArrayList<>(characters.size());
 		List<CharacterSkillRecord> csRecords = characters.stream()
 			.peek((c) -> records.add(mapRecord(c)))

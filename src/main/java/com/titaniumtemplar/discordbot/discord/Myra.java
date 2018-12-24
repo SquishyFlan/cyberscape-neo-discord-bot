@@ -4,11 +4,17 @@ import static com.titaniumtemplar.discordbot.discord.DiscordUtils.deleteMessage;
 import static com.titaniumtemplar.discordbot.model.combat.AttackType.ATTACK;
 import static com.titaniumtemplar.discordbot.model.combat.AttackType.BOLT;
 import static com.titaniumtemplar.discordbot.model.combat.AttackType.SHOOT;
+import static java.time.ZoneOffset.UTC;
+import static java.time.format.DateTimeFormatter.ISO_DATE_TIME;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static net.dv8tion.jda.core.Permission.ADMINISTRATOR;
 import static net.dv8tion.jda.core.Permission.MESSAGE_READ;
 import static net.dv8tion.jda.core.Permission.MESSAGE_WRITE;
 import static net.dv8tion.jda.core.entities.ChannelType.TEXT;
@@ -30,6 +36,7 @@ import com.titaniumtemplar.discordbot.model.monster.Monster;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import java.awt.Color;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -38,6 +45,7 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.function.Function;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
@@ -47,6 +55,7 @@ import javax.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
@@ -70,7 +79,7 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 public class Myra extends ListenerAdapter {
 
 	//<editor-fold defaultstate="collapsed" desc="Static fields">
-	private static final int COMBAT_ROUND_SECONDS = 10;
+	private static final int COMBAT_ROUND_SECONDS = 30;
 	private static final int COMBAT_END_COOLDOWN = 120;
 	private static final int COMBAT_WAIT_LOWER = 300;
 	private static final int COMBAT_WAIT_UPPER = 3600;
@@ -83,6 +92,7 @@ public class Myra extends ListenerAdapter {
 
 	//<editor-fold defaultstate="collapsed" desc="Injected Fields">
 	private final CyberscapeService service;
+	private final JDA discord;
 	private final ScheduledExecutorService combatThreadPool;
 	private final String baseUrl;
 //</editor-fold>
@@ -91,10 +101,12 @@ public class Myra extends ListenerAdapter {
 	private final Map<String, Guild> guildMap = new HashMap<>();
 	private final Map<String, Combat> combats = new HashMap<>();
 	private final Map<String, Function<? super List<String>, ? extends DiscordCommand>> commands = new HashMap<>();
+	private final Map<String, ScheduledFuture<?>> combatFutures = new HashMap<>();
 //</editor-fold>
 
 	@PostConstruct
 	private void setup() {
+		discord.addEventListener(this);
 		commands.put(".register", RegisterCommand::withArgs);
 		commands.put(".profile", ProfileCommand::withArgs);
 		commands.put(".skills", SkillsCommand::withArgs);
@@ -109,6 +121,22 @@ public class Myra extends ListenerAdapter {
 	@PreDestroy
 	private void destroy() {
 		combatThreadPool.shutdownNow();
+	}
+
+	private ScheduledFuture<?> schedule(Runnable r, int timeSeconds) {
+		return schedule(r, timeSeconds, () -> {});
+	}
+
+	private ScheduledFuture<?> schedule(Runnable r, int timeSeconds, Runnable onFailure) {
+		Runnable wrapped = () -> {
+			try {
+				r.run();
+			} catch (Throwable t) {
+				log.error("Uncaught error!", t);
+				onFailure.run();
+			}
+		};
+		return combatThreadPool.schedule(wrapped, timeSeconds, SECONDS);
 	}
 
 	private void joinGuild(Guild guild) {
@@ -275,17 +303,30 @@ public class Myra extends ListenerAdapter {
 
 		int waitTime = getWaitTime();
 		log.info("Scheduling combat for Guild {} in {}s", guild.getName(), waitTime);
-		combatThreadPool.schedule(
+		combatSchedule(
+			guild.getId(),
 			() -> startCombat(guild),
 			waitTime,
-			SECONDS);
+			() -> {
+				log.warn("Failed to start combat for Guild {}! Trying again...", guild.getName());
+				scheduleCombat(guild);
+			});
 	}
 
 	private int getWaitTime() {
 		return RAND.nextInt(COMBAT_WAIT_UPPER - COMBAT_WAIT_LOWER) + COMBAT_WAIT_LOWER;
 	}
 
+	private void combatSchedule(String guildId, Runnable r, int timeSeconds, Runnable onFailure) {
+		combatFutures.put(guildId, schedule(r, timeSeconds, onFailure));
+	}
+
 	private void startCombat(Guild guild) {
+		if (combats.containsKey(guild.getId())) {
+			log.warn("Combat already exists for guild {}! Ignoring...", guild.getName());
+			return;
+		}
+
 		List<TextChannel> channels = getEligibleChannels(guild);
 		// Channel for original post
 		TextChannel channel = channels.get(RAND.nextInt(channels.size()));
@@ -305,10 +346,9 @@ public class Myra extends ListenerAdapter {
 			combatChannel = guild.getTextChannelById(iter.next());
 
 			channel.sendMessage("Combat beginning in " + combatChannel.getAsMention() + "!")
-				.queue((message) -> combatThreadPool.schedule(
-				() -> message.delete().queue(),
-				COMBAT_ROUND_SECONDS,
-				SECONDS));
+				.queue((message) -> schedule(
+				() -> deleteMessage(message),
+				COMBAT_ROUND_SECONDS));
 		}
 
 		// TODO: Figure out how "active" the channel is to determine the size of the mob
@@ -346,10 +386,14 @@ public class Myra extends ListenerAdapter {
 						newMessage.addReaction(ATTACK_EMOJI).queue();
 						newMessage.addReaction(SHOOT_EMOJI).queue();
 						newMessage.addReaction(BOLT_EMOJI).queue();
-						combatThreadPool.schedule(
+						combatSchedule(
+							prevMessage.getGuild().getId(),
 							() -> nextCombatRound(combat),
 							COMBAT_ROUND_SECONDS,
-							SECONDS);
+							() -> {
+								log.warn("Failed to run next combat round! Abandoning combat and rescheduling...");
+								scheduleCombat(prevMessage.getGuild());
+							});
 					},
 					(error) -> {
 						log.warn("Error trying to manage a combat round! Trying again...", error);
@@ -385,6 +429,7 @@ public class Myra extends ListenerAdapter {
 	}
 
 	private void nextCombatRound(Combat combat) {
+		log.info("Resolving combat in {} round {}", combat.getGuild().getName(), combat.getCurrentRound().getNumber());
 		synchronized (combat) {
 			combat.resolveRound();
 		}
@@ -404,7 +449,7 @@ public class Myra extends ListenerAdapter {
 			Message prevMessage = combat.getMessage();
 			Guild guild = prevMessage.getGuild();
 			Monster monster = combat.getMonster();
-			combats.remove(prevMessage.getGuild().getId());
+			combats.remove(guild.getId());
 
 			Set<String> levelups = service.awardXp(combat.getParticipantUids(), monster.getXp());
 			String combatants = combat.getParticipantUids()
@@ -431,7 +476,7 @@ public class Myra extends ListenerAdapter {
 			prevMessage.getChannel()
 				.sendMessage(embed)
 				.queue((newMessage) ->
-					combatThreadPool.schedule(() -> newMessage.delete().queue(), COMBAT_END_COOLDOWN, SECONDS));
+					schedule(() -> newMessage.delete().queue(), COMBAT_END_COOLDOWN));
 			deleteMessage(prevMessage);
 			scheduleCombat(combat.getGuild());
 		}
@@ -451,10 +496,21 @@ public class Myra extends ListenerAdapter {
 			prevMessage.getChannel()
 				.sendMessage(embed)
 				.queue((newMessage) ->
-					combatThreadPool.schedule(() -> newMessage.delete().queue(), COMBAT_END_COOLDOWN, SECONDS));
+					schedule(() -> newMessage.delete().queue(), COMBAT_END_COOLDOWN));
 			deleteMessage(prevMessage);
 			scheduleCombat(combat.getGuild());
 		}
+	}
+
+	public void cancelCombat(String guildId) {
+		combats.remove(guildId);
+		combatFutures.remove(guildId).cancel(false);
+		log.info("Canceled combat for guild {}", guildMap.get(guildId).getName());
+	}
+
+	public void forceCombat(String guildId) {
+		cancelCombat(guildId); // Prevent double-scheduling
+		startCombat(guildMap.get(guildId));
 	}
 
 	/******************
@@ -484,5 +540,35 @@ public class Myra extends ListenerAdapter {
 
 	public String getBaseUrl() {
 		return baseUrl;
+	}
+
+	/******************
+	 * API HELPERS
+	 *****************/
+	public boolean isAdmin(Member member) {
+		return member.getRoles()
+			.stream()
+			.anyMatch((role) -> role.hasPermission(ADMINISTRATOR));
+	}
+
+	public User getUser(String uid) {
+		return discord.getUserById(uid);
+	}
+
+	public Map<String, Guild> getAdminGuilds(User user) {
+		return user.getMutualGuilds()
+			.stream()
+			.filter((guild) -> isAdmin(guild.getMember(user)))
+			.collect(toMap(Guild::getId, identity()));
+	}
+
+	public Map<String, String> getNextCombats(Collection<Guild> guilds) {
+		return guilds.stream()
+			.map(Guild::getId)
+			.collect(toMap(
+				identity(),
+				(gid) -> ISO_DATE_TIME.format(Instant.now()
+					.plusMillis(combatFutures.get(gid).getDelay(MILLISECONDS))
+					.atZone(UTC))));
 	}
 }

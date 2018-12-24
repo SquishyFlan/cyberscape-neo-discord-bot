@@ -1,7 +1,6 @@
 package com.titaniumtemplar.discordbot.service;
 
 import static java.util.Collections.singleton;
-import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 
 import com.titaniumtemplar.db.jooq.enums.SkillType;
@@ -79,7 +78,7 @@ public class CyberscapeService {
 		Set<String> levelups = new HashSet<>();
 		List<CharStats> adjustedParticipants = participantUids.stream()
 			.map(this::getCharacter)
-			.filter(not(CharStats::maxLevel))
+			.filter(CharStats::canLevelUp)
 			.peek((character) -> character.setXp(character.getXp() + xp))
 			.peek((character) -> {
 				if (character.levelUp()) {

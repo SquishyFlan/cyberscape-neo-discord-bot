@@ -33,6 +33,14 @@ public class RegisterCommand implements DiscordCommand {
 				// Expected
 			}
 
+			if (member == null) {
+				member = myra.getMember(author);
+				if (member == null) {
+					sendDm(author, "I'm sorry, you don't seem to be connected to any Cyberscape Neo compatible server!");
+					return;
+				}
+			}
+
 			service.createCharacter(author.getId(), member.getEffectiveName());
 			sendDm(author, "Thank you for registering your account! Check your profile at <" + myra.getBaseUrl() + "profile/>!");
 
