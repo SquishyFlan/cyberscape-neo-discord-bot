@@ -1,8 +1,11 @@
 package com.titaniumtemplar.discordbot.discord;
 
+import static com.titaniumtemplar.discordbot.discord.DiscordUtils.deleteMessage;
 import static com.titaniumtemplar.discordbot.model.combat.AttackType.ATTACK;
 import static com.titaniumtemplar.discordbot.model.combat.AttackType.BOLT;
 import static com.titaniumtemplar.discordbot.model.combat.AttackType.SHOOT;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -62,19 +65,15 @@ import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionRemov
 import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-
-
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class Myra extends ListenerAdapter {
 
 	//<editor-fold defaultstate="collapsed" desc="Static fields">
-	private static final int COMBAT_ROUND_SECONDS = 30;
+	private static final int COMBAT_ROUND_SECONDS = 10;
 	private static final int COMBAT_END_COOLDOWN = 120;
-	private static final int COMBAT_WAIT_LOWER = 300;
-	private static final int COMBAT_WAIT_UPPER = 3600;
+	private static final int COMBAT_WAIT_LOWER = 30;
+	private static final int COMBAT_WAIT_UPPER = 60;
 	private static final Random RAND = new Random();
 	private static final Pattern COMMAND_PATTERN = Pattern.compile("\"([^\"]*)\"|(\\S+)");
 	private static final String ATTACK_EMOJI = "⚔";
@@ -338,7 +337,7 @@ public class Myra extends ListenerAdapter {
 				.sendMessage(embed)
 				.queue((newMessage) -> {
 					combat.setMessage(newMessage);
-					prevMessage.delete().queue();
+					deleteMessage(prevMessage);
 					newMessage.addReaction(ATTACK_EMOJI).queue();
 					newMessage.addReaction(SHOOT_EMOJI).queue();
 					newMessage.addReaction(BOLT_EMOJI).queue();
@@ -380,9 +379,7 @@ public class Myra extends ListenerAdapter {
 		combat.resolveRound();
 		if (combat.getMonster().isDead()) {
 			endCombat(combat);
-		} else if (combat.getCurrentRound().getNumber() > 1
-			&& combat.getCurrentRound().isEmpty()
-			&& combat.getPreviousRound().isEmpty()) {
+		} else if (combat.getIgnoredRounds() > 1) {
 			// Run away after 2 consecutive noninteracted rounds
 			escapeCombat(combat);
 		} else {
@@ -404,7 +401,6 @@ public class Myra extends ListenerAdapter {
 				.filter(Objects::nonNull)
 				.map((member) -> {
 					String memberId = member.getUser().getId();
-					member.getEffectiveName();
 					if (levelups.contains(memberId)) {
 						return member.getEffectiveName() + " **LEVEL UP**";
 					}

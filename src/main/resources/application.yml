@@ -39,8 +39,20 @@ spring:
   profiles: development
   datasource:
     url: jdbc:postgresql://192.168.1.2:5432/cyberscape
+  security:
+    oauth2:
+      client:
+        registration:
+          discord:
+            client-id: ENC(p+jC5EBhS8pSpZRQiC7UIIoPH6fLZSYts4l6SPgPQvc=)
+            client-secret: ENC(5uM236R3Za4Hcjn9tAI4Y/6lLAz0RWCGR9fYff7pv51Yxj2O8PoV0rqA5leLMaSi)
+discord:
+  token: ENC(Aw4pEW4kbnhtPKzHrboy0FmUV9p10XOtGJP6KV3WERZjNbujAn4/KI0PMSOoASY7rqxhEkIqFC6f/CEy4702xq/TFJI+SgsF)
 server:
   address: 0.0.0.0
+# Don't commit me
+game:
+  baseUrl: http://localhost:8080/game/
 ---
 spring:
   profiles: production

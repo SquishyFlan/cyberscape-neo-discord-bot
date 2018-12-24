@@ -26,6 +26,7 @@ public class Combat {
 	private Round previousRound;
 	private Round currentRound = new Round(1);
 	private String lastRoundText = "";
+	private int ignoredRounds = 0;
 
 	private final Set<String> participantUids = new HashSet<>();
 
@@ -34,6 +35,11 @@ public class Combat {
 		lastRoundText = previousRound.resolve(monster);
 		currentRound = new Round(previousRound.getNumber() + 1);
     participantUids.addAll(previousRound.getParticipants());
+		if (previousRound.isEmpty()) {
+			ignoredRounds++;
+		} else {
+			ignoredRounds = 0;
+		}
 	}
 
 	public void addAttack(
