@@ -24,10 +24,10 @@ public class Skill {
 		ranks += diff.getRanks();
 		spec1Ranks += diff.getSpec1Ranks();
 		spec2Ranks += diff.getSpec2Ranks();
-		if (diff.getSpec1Name() != null) {
+		if (diff.getSpec1Name() != null && diff.getSpec1Ranks() > 0) {
 			spec1Name = diff.getSpec1Name();
 		}
-		if (diff.getSpec2Name() != null) {
+		if (diff.getSpec2Name() != null && diff.getSpec2Ranks() > 0) {
 			spec2Name = diff.getSpec2Name();
 		}
 	}

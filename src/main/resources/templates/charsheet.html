@@ -90,11 +90,14 @@
 								<span th:class="${character.skills.get(skill).spec1Ranks}? 'specRanks' : 'specRanks hidden'"
 											th:id="|${skill.literal}Spec1Ranks|"
 											th:text="${character.skills.get(skill).spec1Ranks}"></span>
-								<input type="text" class="hidden" th:id="|${skill.literal}Spec1Name|" />
-								<input type="button" value="-" class="hidden"
+								<input type="text" class="specName hidden"
+											 data-skill-field="spec1Name"
+											 th:data-skill-type="${skill.literal}"
+											 th:id="|${skill.literal}Spec1Name|" />
+								<input type="button" value="-" class="dec hidden"
 											 th:data-skill-type="${skill.literal}"
 											 data-skill-field="spec1Ranks" th:id="|${skill.literal}Spec1Decrement|" />
-								<input type="button" value="+" class="hidden"
+								<input type="button" value="+" class="inc hidden"
 											 th:data-skill-type="${skill.literal}"
 											 data-skill-field="spec1Ranks" th:id="|${skill.literal}Spec1Increment|" />
 								<span class="specCost hidden" th:id="|${skill.literal}Spec1Cost|"></span>
@@ -106,11 +109,14 @@
 								<span th:class="${character.skills.get(skill).spec2Ranks}? 'specRanks' : 'specRanks hidden'"
 											th:id="|${skill.literal}Spec2Ranks|"
 											th:text="${character.skills.get(skill).spec2Ranks}"></span>
-								<input type="text" class="hidden" th:id="|${skill.literal}Spec2Name|" />
-								<input type="button" value="-" class="hidden"
+								<input type="text" class="specName hidden"
+											 data-skill-field="spec2Name"
+											 th:data-skill-type="${skill.literal}"
+											 th:id="|${skill.literal}Spec2Name|" />
+								<input type="button" value="-" class="dec hidden"
 											 th:data-skill-type="${skill.literal}"
 											 data-skill-field="spec2Ranks" th:id="|${skill.literal}Spec2Decrement|" />
-								<input type="button" value="+" class="hidden"
+								<input type="button" value="+" class="inc hidden"
 											 th:data-skill-type="${skill.literal}"
 											 data-skill-field="spec2Ranks" th:id="|${skill.literal}Spec2Increment|" />
 								<span class="specCost hidden" th:id="|${skill.literal}Spec2Cost|"></span>

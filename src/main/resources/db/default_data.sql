@@ -94,9 +94,9 @@ INSERT INTO monster (id, name, hp, xp) VALUES
  ('038437a7-d4ff-4dbd-9021-17f20b86712c', 'Displacer Treant', 7777, 4444),
  ('f59eec6c-2fd1-4c32-bf9f-7ce548d2ad0b', 'The Innkeeper''s Door', 10000, 10000);
 
-INSERT INTO character VALUES
- ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'roland', 50, -1, -1, -1),
- ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'hyperion', 50, -1, -1, -1);
+INSERT INTO character (id, user_id, name, level, xp, hp_current, mp_current) VALUES
+ ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'roland', 'Roland', 50, -1, -1, -1),
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'hyperion', 'Hyperion', 50, -1, -1, -1);
 
 INSERT INTO character_skill VALUES
  ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'fire', 15, 'Burn', 5, '', 0),

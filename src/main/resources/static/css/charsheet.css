@@ -8,7 +8,7 @@ body {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 #name {
@@ -37,7 +37,7 @@ div.stat {
   margin-top: 15px;
 }
 
-span.skillCost {
+span.skillCost, span.specCost {
   font-style: italic;
   color: #888;
   font-size: 14px;
@@ -46,5 +46,23 @@ span.skillCost {
 
 span.skillLabel {
   display: inline-block;
-  width: 110px;
+  width: 100px;
+}
+
+span.specLabel {
+	display: inline-block;
+	width: 90px;
+	margin-left: 10px;
+	font-style: italic;
+}
+
+span.skillValue, span.specRanks {
+	display: inline-block;
+	width: 30px;
+	text-align: right;
+}
+
+input.specName {
+	width: 120px;
+	margin-left: 10px;
 }

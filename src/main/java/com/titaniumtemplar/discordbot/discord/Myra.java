@@ -391,8 +391,8 @@ public class Myra extends ListenerAdapter {
 
 		if (combat.getMonster().isDead()) {
 			endCombat(combat);
-		} else if (combat.getIgnoredRounds() > 1) {
-			// Run away after 2 consecutive noninteracted rounds
+		} else if (combat.getIgnoredRounds() > 9) {
+			// Run away after 5 uninteracted minutes
 			escapeCombat(combat);
 		} else {
 			combatRound(combat);

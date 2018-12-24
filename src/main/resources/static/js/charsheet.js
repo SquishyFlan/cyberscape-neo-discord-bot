@@ -18,18 +18,34 @@ function handleSkillButtons() {
 			$("#" + skillType + "Increment").addClass("hidden");
 		}
 
+		var tempSkill = skillDiff[skillType] || {};
+
 		// We have spent a skill point, show minus butan and save and reset butans
-		if (skillDiff[skillType] !== undefined && skillDiff[skillType].ranks) {
-			$("#" + skillType + "Decrement").removeClass("hidden");
+		if (tempSkill.ranks) {
 			anyPointSpent = true;
+
+			// Can't decrement a skill below spec level
+			if (skill.spec1Ranks === skill.ranks || skill.spec2Ranks === skill.ranks) {
+				$("#" + skillType + "Decrement").addClass("hidden");
+			} else {
+				$("#" + skillType + "Decrement").removeClass("hidden");
+			}
 		} else {
 			$("#" + skillType + "Decrement").addClass("hidden");
 		}
 
 		// We can afford a spec point, show plus butan
-		if (skill.nextSpec1RankCost && skill.nextSpec1RankCost <= tempChar.spLeft
+		if (
+						skill.nextSpec1RankCost
+						&& skill.nextSpec1RankCost <= tempChar.spLeft
 						&& skill.spec1Ranks < skill.ranks) {
-			$("#" + skillType + "Spec1Increment").removeClass("hidden");
+
+			if (skill.spec1Name || tempSkill.spec1Name) {
+				$("#" + skillType + "Spec1Increment").removeClass("hidden");
+			} else {
+				$("#" + skillType + "Spec1Increment").addClass("hidden");
+			}
+
 			if (skill.spec1Available) {
 				$("#" + skillType + "Spec1Name").removeClass("hidden");
 			} else {
@@ -40,8 +56,15 @@ function handleSkillButtons() {
 			$("#" + skillType + "Spec1Name").addClass("hidden");
 		}
 
+		// Show costs for available spec
+		if (skill.spec1Name || tempSkill.spec1Name) {
+			$("#" + skillType + "Spec1Cost").removeClass("hidden");
+		} else {
+			$("#" + skillType + "Spec1Cost").addClass("hidden");
+		}
+
 		// We have spent a spec point, show minus butan
-		if (skillDiff[skillType] !== undefined && skillDiff[skillType].spec1Ranks) {
+		if (tempSkill.spec1Ranks) {
 			$("#" + skillType + "Spec1Decrement").removeClass("hidden");
 			anyPointSpent = true;
 		} else {
@@ -49,9 +72,17 @@ function handleSkillButtons() {
 		}
 
 		// We can afford a spec point, show plus butan
-		if (skill.nextSpec2RankCost && skill.nextSpec2RankCost <= tempChar.spLeft
+		if (
+						skill.nextSpec2RankCost
+						&& skill.nextSpec2RankCost <= tempChar.spLeft
 						&& skill.spec2Ranks < skill.ranks) {
-			$("#" + skillType + "Spec2Increment").removeClass("hidden");
+
+			if (skill.spec2Name || tempSkill.spec2Name) {
+				$("#" + skillType + "Spec2Increment").removeClass("hidden");
+			} else {
+				$("#" + skillType + "Spec2Increment").addClass("hidden");
+			}
+
 			if (skill.spec2Available) {
 				$("#" + skillType + "Spec2Name").removeClass("hidden");
 			} else {
@@ -62,8 +93,15 @@ function handleSkillButtons() {
 			$("#" + skillType + "Spec2Name").addClass("hidden");
 		}
 
+		// Show costs for available spec
+		if (skill.spec2Name || tempSkill.spec2Name) {
+			$("#" + skillType + "Spec2Cost").removeClass("hidden");
+		} else {
+			$("#" + skillType + "Spec2Cost").addClass("hidden");
+		}
+
 		// We have spent a spec point, show minus butan
-		if (skillDiff[skillType] !== undefined && skillDiff[skillType].spec2Ranks) {
+		if (tempSkill.spec2Ranks) {
 			$("#" + skillType + "Spec2Decrement").removeClass("hidden");
 			anyPointSpent = true;
 		} else {
@@ -106,6 +144,19 @@ function decrementSkill() {
 	recalcStats();
 }
 
+function nameSkill() {
+	var skillType = $(this).attr("data-skill-type");
+	if (!skillDiff[skillType])
+		skillDiff[skillType] = {};
+	var skill = skillDiff[skillType];
+
+	var skillField = $(this).attr("data-skill-field");
+
+	var name = $(this).val();
+	skill[skillField] = name;
+	handleSkillButtons();
+}
+
 function recalcStats() {
 	if (inRequest) {
 		return;
@@ -144,8 +195,26 @@ function redrawStats() {
 	$.each(tempChar.skills, function (skillType, skill) {
 		$("#" + skillType + "Value").text(skill.ranks);
 		$("#" + skillType + "Cost").text(skill.nextRankCost);
+		$("#" + skillType + "Spec1Label").text(skill.spec1Name);
+		if (skill.spec1Name) {
+			$("#" + skillType + "Spec1Label").removeClass("hidden");
+			$("#" + skillType + "Spec1Ranks").removeClass("hidden");
+		} else {
+			$("#" + skillType + "Spec1Label").addClass("hidden");
+			$("#" + skillType + "Spec1Ranks").addClass("hidden");
+		}
+
 		$("#" + skillType + "Spec1Ranks").text(skill.spec1Ranks);
 		$("#" + skillType + "Spec1Cost").text(skill.nextSpec1RankCost);
+		$("#" + skillType + "Spec2Label").text(skill.spec2Name);
+		if (skill.spec2Name) {
+			$("#" + skillType + "Spec2Label").removeClass("hidden");
+			$("#" + skillType + "Spec2Ranks").removeClass("hidden");
+		} else {
+			$("#" + skillType + "Spec2Label").addClass("hidden");
+			$("#" + skillType + "Spec2Ranks").addClass("hidden");
+		}
+
 		$("#" + skillType + "Spec2Ranks").text(skill.spec2Ranks);
 		$("#" + skillType + "Spec2Cost").text(skill.nextSpec2RankCost);
 	});
@@ -199,6 +268,7 @@ $(document).ready(function () {
 	$("input.inc").on("click", incrementSkill);
 	$("input#save").on("click", saveChar);
 	$("input#reset").on("click", reset);
+	$("input.specName").on("blur", nameSkill);
 	// TODO: Make specialization name boxen red if they're empty onBlur, and apply them to the diff
 
 	handleSkillButtons();
