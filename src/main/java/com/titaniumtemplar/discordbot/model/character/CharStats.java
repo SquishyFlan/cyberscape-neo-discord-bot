@@ -68,6 +68,7 @@ public class CharStats {
 		cs.setUserId(userId);
 		cs.setHpCurrent(hpCurrent);
 		cs.setHpMax(hpMax);
+		cs.setName(name);
 		cs.setXp(xp);
 		cs.setLevel(level);
 		cs.setSpecs(new HashSet<>(specs));
@@ -83,6 +84,19 @@ public class CharStats {
 	}
 
 	public void calcStats(StatConfig config) {
+		while (level < MAX_LEVEL && xp > NEXT_LEVELS.get(level)) {
+			xp -= NEXT_LEVELS.get(level);
+			level++;
+			hpCurrent = -1;
+			mpCurrent = -1;
+		}
+		if (level != MAX_LEVEL) {
+			xpNext = NEXT_LEVELS.get(level);
+		} else {
+			xp = -1;
+			xpNext = -1;
+		}
+
 		spTotal = 0;
 		int spPerLevel = config.getSpPerLevel();
 		int spLevelGap = config.getSpPerLevelGap();
@@ -195,19 +209,6 @@ public class CharStats {
 		mpMax = config.getMpBase()
 			+ stats.get(int_).get() * config.getMpPerInt()
 			+ stats.get(wis).get() * config.getMpPerWis();
-
-		while (level < MAX_LEVEL && xp > NEXT_LEVELS.get(level)) {
-			xp -= NEXT_LEVELS.get(level);
-			level++;
-			hpCurrent = -1;
-			mpCurrent = -1;
-		}
-		if (level != MAX_LEVEL) {
-			xpNext = NEXT_LEVELS.get(level);
-		} else {
-			xp = -1;
-			xpNext = -1;
-		}
 
 		if (hpCurrent == -1) {
 			hpCurrent = hpMax;

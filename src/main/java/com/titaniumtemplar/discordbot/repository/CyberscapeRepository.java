@@ -243,6 +243,7 @@ public class CyberscapeRepository {
 
 		r.setId(c.getId());
 		r.setUserId(c.getUserId());
+		r.setName(c.getName());
 		r.setHpCurrent(c.getHpCurrent());
 		r.setMpCurrent(c.getMpCurrent());
 		r.setXp(c.getXp());
