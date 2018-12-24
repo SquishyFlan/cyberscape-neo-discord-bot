@@ -72,8 +72,8 @@ public class Myra extends ListenerAdapter {
 	//<editor-fold defaultstate="collapsed" desc="Static fields">
 	private static final int COMBAT_ROUND_SECONDS = 10;
 	private static final int COMBAT_END_COOLDOWN = 120;
-	private static final int COMBAT_WAIT_LOWER = 30;
-	private static final int COMBAT_WAIT_UPPER = 60;
+	private static final int COMBAT_WAIT_LOWER = 300;
+	private static final int COMBAT_WAIT_UPPER = 3600;
 	private static final Random RAND = new Random();
 	private static final Pattern COMMAND_PATTERN = Pattern.compile("\"([^\"]*)\"|(\\S+)");
 	private static final String ATTACK_EMOJI = "⚔";
@@ -269,6 +269,10 @@ public class Myra extends ListenerAdapter {
 	 * COMBAT
    *********/
 	private void scheduleCombat(Guild guild) {
+		if (combats.containsKey(guild.getId())) {
+			log.info("Not scheduling duplicate combat for Guild {}", guild.getName());
+		}
+
 		int waitTime = getWaitTime();
 		log.info("Scheduling combat for Guild {} in {}s", guild.getName(), waitTime);
 		combatThreadPool.schedule(
@@ -335,17 +339,22 @@ public class Myra extends ListenerAdapter {
 			MessageEmbed embed = getCombatEmbed(combat);
 			prevMessage.getChannel()
 				.sendMessage(embed)
-				.queue((newMessage) -> {
-					combat.setMessage(newMessage);
-					deleteMessage(prevMessage);
-					newMessage.addReaction(ATTACK_EMOJI).queue();
-					newMessage.addReaction(SHOOT_EMOJI).queue();
-					newMessage.addReaction(BOLT_EMOJI).queue();
-					combatThreadPool.schedule(
-						() -> nextCombatRound(combat),
-						COMBAT_ROUND_SECONDS,
-						SECONDS);
-				});
+				.queue(
+					(newMessage) -> {
+						combat.setMessage(newMessage);
+						deleteMessage(prevMessage);
+						newMessage.addReaction(ATTACK_EMOJI).queue();
+						newMessage.addReaction(SHOOT_EMOJI).queue();
+						newMessage.addReaction(BOLT_EMOJI).queue();
+						combatThreadPool.schedule(
+							() -> nextCombatRound(combat),
+							COMBAT_ROUND_SECONDS,
+							SECONDS);
+					},
+					(error) -> {
+						log.warn("Error trying to manage a combat round! Trying again...", error);
+						combatRound(combat);
+					});
 		}
 	}
 
@@ -376,7 +385,10 @@ public class Myra extends ListenerAdapter {
 	}
 
 	private void nextCombatRound(Combat combat) {
-		combat.resolveRound();
+		synchronized (combat) {
+			combat.resolveRound();
+		}
+
 		if (combat.getMonster().isDead()) {
 			endCombat(combat);
 		} else if (combat.getIgnoredRounds() > 1) {
@@ -418,10 +430,9 @@ public class Myra extends ListenerAdapter {
 				.build();
 			prevMessage.getChannel()
 				.sendMessage(embed)
-				.queue((newMessage) -> {
-					prevMessage.delete().queue();
-					combatThreadPool.schedule(() -> newMessage.delete().queue(), COMBAT_END_COOLDOWN, SECONDS);
-				});
+				.queue((newMessage) ->
+					combatThreadPool.schedule(() -> newMessage.delete().queue(), COMBAT_END_COOLDOWN, SECONDS));
+			deleteMessage(prevMessage);
 			scheduleCombat(combat.getGuild());
 		}
 	}
@@ -439,10 +450,9 @@ public class Myra extends ListenerAdapter {
 				.build();
 			prevMessage.getChannel()
 				.sendMessage(embed)
-				.queue((newMessage) -> {
-					prevMessage.delete().queue();
-					combatThreadPool.schedule(() -> newMessage.delete().queue(), COMBAT_END_COOLDOWN, SECONDS);
-				});
+				.queue((newMessage) ->
+					combatThreadPool.schedule(() -> newMessage.delete().queue(), COMBAT_END_COOLDOWN, SECONDS));
+			deleteMessage(prevMessage);
 			scheduleCombat(combat.getGuild());
 		}
 	}
