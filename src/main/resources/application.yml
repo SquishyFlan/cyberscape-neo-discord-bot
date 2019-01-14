@@ -5,6 +5,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/cyberscape
     username: cyberscape
     password: ENC(27u95JIGEtfR7TfXGnNV5yBz7AbWycu3FkvqevuQOb8=)
+    maximum-pool-size: 2
   security:
     oauth2:
       client:
