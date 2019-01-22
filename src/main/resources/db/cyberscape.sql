@@ -17,7 +17,7 @@ CREATE TYPE skill_type AS ENUM (
   'wind',
   'earth',
   'sonic',
-  'personal',
+  'martial',
   'material',
   'shift',
   'life',
@@ -28,7 +28,6 @@ CREATE TYPE skill_type AS ENUM (
 CREATE TYPE stat_type AS ENUM (
   'str',
   'vit',
-  'spd',
   'dex',
   'int',
   'wis'
