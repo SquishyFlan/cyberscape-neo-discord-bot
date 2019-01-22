@@ -48,7 +48,8 @@ public class RegisterCommand implements DiscordCommand {
 			Guild guild = member.getGuild();
 			guild
 				.getController()
-				.modifyMemberRoles(member,
+				.modifyMemberRoles(
+					member,
 					guild.getRolesByName("In Character Select", false),
 					guild.getRolesByName("Playing Cyberscape Neo", false))
 				.queue();

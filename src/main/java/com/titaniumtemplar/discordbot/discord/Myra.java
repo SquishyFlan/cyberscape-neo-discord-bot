@@ -19,6 +19,7 @@ import static net.dv8tion.jda.core.Permission.MESSAGE_READ;
 import static net.dv8tion.jda.core.Permission.MESSAGE_WRITE;
 import static net.dv8tion.jda.core.entities.ChannelType.TEXT;
 
+import com.titaniumtemplar.discordbot.discord.commands.AlertCommand;
 import com.titaniumtemplar.discordbot.discord.commands.AttackCommand;
 import com.titaniumtemplar.discordbot.discord.commands.BoltCommand;
 import com.titaniumtemplar.discordbot.discord.commands.ConfigCommand;
@@ -35,6 +36,7 @@ import com.titaniumtemplar.discordbot.model.combat.Combat;
 import com.titaniumtemplar.discordbot.model.monster.Monster;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import java.awt.Color;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,6 +46,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Function;
@@ -61,6 +64,7 @@ import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
+import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.ReadyEvent;
@@ -116,6 +120,7 @@ public class Myra extends ListenerAdapter {
 		commands.put(".shoot", ShootCommand::withArgs);
 		commands.put(".bolt", BoltCommand::withArgs);
 		commands.put(".config", ConfigCommand::withArgs);
+		commands.put(".alert", AlertCommand::withArgs);
 	}
 
 	@PreDestroy
@@ -142,6 +147,16 @@ public class Myra extends ListenerAdapter {
 	private void joinGuild(Guild guild) {
 		guildMap.put(guild.getId(), guild);
 		scheduleCombat(guild);
+
+		guild.getRolesByName("Grinding For XP", true)
+			.stream()
+			.findAny()
+			.ifPresent((grindingRole) ->
+				guild.getMembersWithRoles(grindingRole)
+					.stream()
+					.peek((member) -> log.info("Removing stale Grinding role from " + member.getEffectiveName()))
+					.forEach((member) ->
+						guild.getController().removeSingleRoleFromMember(member, grindingRole).queue()));
 	}
 
 	private List<TextChannel> getEligibleChannels(Guild guild) {
@@ -345,7 +360,14 @@ public class Myra extends ListenerAdapter {
 			}
 			combatChannel = guild.getTextChannelById(iter.next());
 
-			channel.sendMessage("Combat beginning in " + combatChannel.getAsMention() + "!")
+			String grindingRoleMention = guild.getRolesByName("Grinding For XP", true)
+				.stream()
+				.findAny()
+				.map(Role::getAsMention)
+				.orElse("grinding for XP");
+
+			channel.sendMessage("Attention to those " + grindingRoleMention
+				+ " - Combat beginning in " + combatChannel.getAsMention() + "!")
 				.queue((message) -> schedule(
 				() -> deleteMessage(message),
 				COMBAT_ROUND_SECONDS));
@@ -413,13 +435,23 @@ public class Myra extends ListenerAdapter {
 		int meleeCharge = monster.getDefenseCharge(ATTACK);
 		int shootCharge = monster.getDefenseCharge(SHOOT);
 		int boltCharge = monster.getDefenseCharge(BOLT);
+
+		String meleeDef = monster.hasShield(ATTACK) ? "**Melee**" : "Melee";
+		String rangedDef = monster.hasShield(SHOOT) ? "**Ranged**" : "Ranged";
+		String magicDef = monster.hasShield(BOLT) ? "**Magic**" : "Magic";
+		String defString = new StringJoiner("\n")
+			.add(meleeDef)
+			.add(rangedDef)
+			.add(magicDef)
+			.toString();
+
 		MessageEmbed embed = new EmbedBuilder()
 			.setTitle(monster.getName())
 			.setDescription("**Round " + combat.getCurrentRound().getNumber() + "**\n"
 				+ "Join the battle with \".strike\", \".shoot\", \".bolt\", or one of the emoji below!")
 			.setColor(Color.RED)
 			.addField("HP", monster.getCurrentHp() + "/" + monster.getMaxHp(), true)
-			.addField("Defense", "Melee\nRanged\nMagic", true)
+			.addField("Defense", defString, true)
 			.addField("Charge", meleeCharge + "\n" + shootCharge + "\n" + boltCharge, true)
 			.addField("Previous Round", combat.getLastRoundText(), false)
 			.addField("Combatants", combatants, false)
@@ -469,6 +501,7 @@ public class Myra extends ListenerAdapter {
 			MessageEmbed embed = new EmbedBuilder()
 				.setTitle(monster.getName())
 				.setDescription("**DEFEATED**")
+				.addField("Previous Round", combat.getLastRoundText(), false)
 				.addField("Rewards", monster.getXp() + " XP earned!", false)
 				.addField("Combatants", combatants, false)
 				.setColor(Color.GREEN)
@@ -575,5 +608,16 @@ public class Myra extends ListenerAdapter {
 
 	public void register(String userId) {
 		runCommand(singletonList(".register"), null, getUser(userId), null);
+	}
+
+	public void scheduleGrinding(Member member, int numHours) {
+		schedule(() -> member.getRoles()
+			.stream()
+			.filter((role) -> role.getName().equalsIgnoreCase("Grinding For XP"))
+			.forEach((role) -> member.getGuild()
+			.getController()
+			.removeSingleRoleFromMember(member, role)
+			.queue()),
+			(int) Duration.ofHours(numHours).toSeconds());
 	}
 }
