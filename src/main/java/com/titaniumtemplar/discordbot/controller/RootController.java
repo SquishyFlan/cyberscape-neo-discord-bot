@@ -1,6 +1,7 @@
 package com.titaniumtemplar.discordbot.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.titaniumtemplar.discordbot.discord.Myra;
 import com.titaniumtemplar.discordbot.model.character.CharStats;
 import com.titaniumtemplar.discordbot.model.exception.NoSuchCharacterException;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
@@ -24,6 +25,9 @@ public class RootController {
 	CyberscapeService service;
 
 	@Inject
+	Myra myra;
+
+	@Inject
 	ObjectMapper objectMapper;
 
 	@GetMapping("")
@@ -41,7 +45,8 @@ public class RootController {
 		try {
 			character = service.getCharacter(userId);
 		} catch (NoSuchCharacterException ex) {
-			character = service.createCharacter(userId, username);
+			myra.register(userId);
+			character = service.getCharacter(userId);
 		}
 
 		character.setName(username);

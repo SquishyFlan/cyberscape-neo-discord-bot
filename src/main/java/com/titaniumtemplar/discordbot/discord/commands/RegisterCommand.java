@@ -8,6 +8,7 @@ import com.titaniumtemplar.discordbot.model.exception.NoSuchCharacterException;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
@@ -43,6 +44,14 @@ public class RegisterCommand implements DiscordCommand {
 
 			service.createCharacter(author.getId(), member.getEffectiveName());
 			sendDm(author, "Thank you for registering your account! Check your profile at <" + myra.getBaseUrl() + "profile/>!");
+
+			Guild guild = member.getGuild();
+			guild
+				.getController()
+				.modifyMemberRoles(member,
+					guild.getRolesByName("In Character Select", false),
+					guild.getRolesByName("Playing Cyberscape Neo", false))
+				.queue();
 
 		} finally {
 			deleteMessage(message);

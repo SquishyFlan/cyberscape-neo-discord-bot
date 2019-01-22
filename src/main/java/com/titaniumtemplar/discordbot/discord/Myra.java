@@ -41,7 +41,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
@@ -112,7 +112,7 @@ public class Myra extends ListenerAdapter {
 		commands.put(".skills", SkillsCommand::withArgs);
 		commands.put(".help", HelpCommand::withArgs);
 		commands.put(".role", RoleCommand::withArgs);
-		commands.put(".attack", AttackCommand::withArgs);
+		commands.put(".strike", AttackCommand::withArgs);
 		commands.put(".shoot", ShootCommand::withArgs);
 		commands.put(".bolt", BoltCommand::withArgs);
 		commands.put(".config", ConfigCommand::withArgs);
@@ -193,7 +193,7 @@ public class Myra extends ListenerAdapter {
 
 		guild.getController()
 			.addRolesToMember(
-				member, guild.getRolesByName("Playing Cyberscape Neo", false))
+				member, guild.getRolesByName("In Character Select", false))
 			.queue();
 	}
 
@@ -248,7 +248,7 @@ public class Myra extends ListenerAdapter {
 	private List<String> getCommandForEmoji(ReactionEmote emote) {
 		switch (emote.getName()) {
 			case ATTACK_EMOJI:
-				return singletonList(".attack");
+				return singletonList(".strike");
 			case SHOOT_EMOJI:
 				return singletonList(".shoot");
 			case BOLT_EMOJI:
@@ -416,7 +416,7 @@ public class Myra extends ListenerAdapter {
 		MessageEmbed embed = new EmbedBuilder()
 			.setTitle(monster.getName())
 			.setDescription("**Round " + combat.getCurrentRound().getNumber() + "**\n"
-				+ "Join the battle with \".attack\", \".shoot\", \".bolt\", or one of the emoji below!")
+				+ "Join the battle with \".strike\", \".shoot\", \".bolt\", or one of the emoji below!")
 			.setColor(Color.RED)
 			.addField("HP", monster.getCurrentHp() + "/" + monster.getMaxHp(), true)
 			.addField("Defense", "Melee\nRanged\nMagic", true)
@@ -454,15 +454,16 @@ public class Myra extends ListenerAdapter {
 			Set<String> levelups = service.awardXp(combat.getParticipantUids(), monster.getXp());
 			String combatants = combat.getParticipantUids()
 				.stream()
-				.map(guild::getMemberById)
-				.filter(Objects::nonNull)
-				.map((member) -> {
-					String memberId = member.getUser().getId();
-					if (levelups.contains(memberId)) {
-						return member.getEffectiveName() + " **LEVEL UP**";
-					}
-					return member.getEffectiveName();
-				})
+				.map((memId) -> Optional.of(memId)
+					.map(guild::getMemberById)
+					.map((member) -> {
+						String memberId = member.getUser().getId();
+						if (levelups.contains(memberId)) {
+							return member.getEffectiveName() + " **LEVEL UP**";
+						}
+						return member.getEffectiveName();
+					})
+					.orElseGet(() -> service.getCharacter(memId).getName()))
 				.collect(joining("\n"));
 
 			MessageEmbed embed = new EmbedBuilder()
@@ -570,5 +571,9 @@ public class Myra extends ListenerAdapter {
 				(gid) -> ISO_DATE_TIME.format(Instant.now()
 					.plusMillis(combatFutures.get(gid).getDelay(MILLISECONDS))
 					.atZone(UTC))));
+	}
+
+	public void register(String userId) {
+		runCommand(singletonList(".register"), null, getUser(userId), null);
 	}
 }

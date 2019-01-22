@@ -113,6 +113,9 @@ function handleSkillButtons() {
 		// TODO: Put these in a div to hide at the same time, duh
 		$("#save").removeClass("hidden");
 		$("#reset").removeClass("hidden");
+	} else {
+		$("#save").addClass("hidden");
+		$("#reset").addClass("hidden");
 	}
 }
 
