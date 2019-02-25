@@ -102,7 +102,6 @@ public class Myra extends ListenerAdapter {
 //</editor-fold>
 
 	//<editor-fold defaultstate="collapsed" desc="Members">
-	private final Map<String, Guild> guildMap = new HashMap<>();
 	private final Map<String, Combat> combats = new HashMap<>();
 	private final Map<String, Function<? super List<String>, ? extends DiscordCommand>> commands = new HashMap<>();
 	private final Map<String, ScheduledFuture<?>> combatFutures = new HashMap<>();
@@ -145,7 +144,6 @@ public class Myra extends ListenerAdapter {
 	}
 
 	private void joinGuild(Guild guild) {
-		guildMap.put(guild.getId(), guild);
 		scheduleCombat(guild);
 
 		guild.getRolesByName("Grinding For XP", true)
@@ -181,13 +179,12 @@ public class Myra extends ListenerAdapter {
 			.getGuilds()
 			.forEach(this::joinGuild);
 
-		log.info("OnReady. Guilds {}", guildMap.size());
+		log.info("Ready!");
 	}
 
 	@Override
 	public void onGuildLeave(GuildLeaveEvent event) {
 		String guildId = event.getGuild().getId();
-		guildMap.remove(guildId);
 		combats.remove(guildId);
 	}
 
@@ -312,15 +309,15 @@ public class Myra extends ListenerAdapter {
 	 * COMBAT
    *********/
 	private void scheduleCombat(Guild guild) {
-		if (combats.containsKey(guild.getId())) {
+		String guildId = guild.getId();
+		if (combats.containsKey(guildId)) {
 			log.info("Not scheduling duplicate combat for Guild {}", guild.getName());
 		}
 
 		int waitTime = getWaitTime();
 		log.info("Scheduling combat for Guild {} in {}s", guild.getName(), waitTime);
-		combatSchedule(
-			guild.getId(),
-			() -> startCombat(guild),
+		combatSchedule(guildId,
+			() -> startCombat(guildId),
 			waitTime,
 			() -> {
 				log.warn("Failed to start combat for Guild {}! Trying again...", guild.getName());
@@ -336,7 +333,9 @@ public class Myra extends ListenerAdapter {
 		combatFutures.put(guildId, schedule(r, timeSeconds, onFailure));
 	}
 
-	private void startCombat(Guild guild) {
+	private void startCombat(String guildId) {
+		Guild guild = discord.getGuildById(guildId);
+
 		if (combats.containsKey(guild.getId())) {
 			log.warn("Combat already exists for guild {}! Ignoring...", guild.getName());
 			return;
@@ -539,12 +538,12 @@ public class Myra extends ListenerAdapter {
 	public void cancelCombat(String guildId) {
 		combats.remove(guildId);
 		combatFutures.remove(guildId).cancel(false);
-		log.info("Canceled combat for guild {}", guildMap.get(guildId).getName());
+		log.info("Canceled combat for guild {}", discord.getGuildById(guildId).getName());
 	}
 
 	public void forceCombat(String guildId) {
 		cancelCombat(guildId); // Prevent double-scheduling
-		startCombat(guildMap.get(guildId));
+		startCombat(guildId);
 	}
 
 	/******************
