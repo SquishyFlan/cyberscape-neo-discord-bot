@@ -51,7 +51,9 @@ discord:
   token: ENC(Aw4pEW4kbnhtPKzHrboy0FmUV9p10XOtGJP6KV3WERZjNbujAn4/KI0PMSOoASY7rqxhEkIqFC6f/CEy4702xq/TFJI+SgsF)
 server:
   address: 0.0.0.0
-# Don't commit me
+---
+spring:
+  profiles: local
 game:
   baseUrl: http://localhost:8080/game/
 ---

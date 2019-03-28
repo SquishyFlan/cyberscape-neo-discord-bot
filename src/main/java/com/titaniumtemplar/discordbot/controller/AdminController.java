@@ -1,8 +1,11 @@
 package com.titaniumtemplar.discordbot.controller;
 
 import com.titaniumtemplar.discordbot.discord.Myra;
+import com.titaniumtemplar.discordbot.model.character.CharStats;
+import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import java.util.Map;
 import javax.inject.Inject;
+import javax.servlet.ServletContext;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.User;
@@ -21,6 +24,12 @@ public class AdminController {
 
 	@Inject
 	Myra myra;
+
+	@Inject
+	CyberscapeService service;
+
+	@Inject
+	ServletContext servletContext;
 
 	@GetMapping("")
 	String admin(Authentication auth, Model model) {
@@ -50,8 +59,12 @@ public class AdminController {
 		if (adminGuilds.isEmpty()) {
 			throw new AccessDeniedException("User " + user.getName() + " is not an administrator.");
 		}
+		CharStats character = service.getCharacter("~template~");
 
-		model.addAttribute("readOnly", true);
-		return "admin";
+		model.addAttribute("character", character);
+		model.addAttribute("admin", true);
+		model.addAttribute("urlPrefix", servletContext.getContextPath() + "/admin");
+		model.addAttribute("statConfig", service.getStatConfig());
+		return "charsheet";
 	}
 }

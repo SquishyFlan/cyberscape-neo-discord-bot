@@ -39,7 +39,7 @@ public class ApiController {
 		OAuth2User principal = (OAuth2User) auth.getPrincipal();
 		String userId = (String) principal.getAttributes().get("id");
 
-		service.updateCharSkills(userId, charSkills);
+		service.updateCharSkills(userId, charSkills, false);
 	}
 
 	@PostMapping("statCheck")
@@ -47,6 +47,6 @@ public class ApiController {
 		OAuth2User principal = (OAuth2User) auth.getPrincipal();
 		String userId = (String) principal.getAttributes().get("id");
 
-		return service.checkStats(userId, charSkills);
+		return service.checkStats(userId, charSkills, false);
 	}
 }

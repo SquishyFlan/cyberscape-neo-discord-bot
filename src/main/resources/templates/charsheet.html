@@ -12,7 +12,8 @@
 			originalChar = [[${character}]];
 			statConfig = [[${statConfig}]];
 			readOnly = [[${readOnly}]];
-      admin = [[${admin}]];
+			admin = [[${admin}]];
+			urlPrefix = [[${urlPrefix}]];
 		</script>
     <link rel="stylesheet" href="/css/charsheet.css"
 					th:href="@{/css/charsheet.css}" media="screen" />
@@ -20,7 +21,17 @@
   <body>
     <div id="main">
       <div class="section" id="top">
-        <div id="nameDiv"><span id="name" th:text="${character.name}">Shoe</span></div>
+        <div id="nameDiv">
+					<span id="name" th:text="${character.name}" th:if="${!admin}">Shoe</span>
+				</div>
+				<div id="uidInputDiv" th:if="${admin}">
+					<label class="uidInputLabel" for="uidInput">User ID:</label>
+					<input id="uidInput" />
+				</div>
+				<div id="nameInputDiv" th:if="${admin}">
+					<label class="nameInputLabel" for="name">Name:</label>
+					<input id="name" th:value="${character.name}"/>
+				</div>
       </div>
 
       <div class="section" id="mid">
@@ -29,7 +40,8 @@
 								</div>-->
         <div class="stat" id="level">
           <span id="levelLabel" class="statLabel">LV</span>
-          <span id="levelValue" class="statValue" th:text="${character.level}">1</span>
+          <span id="levelValue" class="statValue" th:text="${character.level}" th:if="${!admin}">1</span>
+					<input id="levelValue" th:if="${admin}" value="50"/>
         </div>
         <div class="stat" id="exp">
           <span id="expLabel" class="statLabel">XP</span>
