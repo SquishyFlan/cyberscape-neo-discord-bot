@@ -39,4 +39,19 @@ public class AdminController {
 		model.addAttribute("nextCombats", nextCombats);
 		return "admin";
 	}
+
+	@GetMapping("character")
+	String adminCharsheet(Authentication auth, Model model) {
+		OAuth2User principal = (OAuth2User) auth.getPrincipal();
+		String userId = (String) principal.getAttributes().get("id");
+
+		User user = myra.getUser(userId);
+		Map<String, Guild> adminGuilds = myra.getAdminGuilds(user);
+		if (adminGuilds.isEmpty()) {
+			throw new AccessDeniedException("User " + user.getName() + " is not an administrator.");
+		}
+
+		model.addAttribute("readOnly", true);
+		return "admin";
+	}
 }

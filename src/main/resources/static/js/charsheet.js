@@ -109,7 +109,7 @@ function handleSkillButtons() {
 		}
 	});
 
-	if (anyPointSpent) {
+	if (anyPointSpent && !admin) {
 		// TODO: Put these in a div to hide at the same time, duh
 		$("#save").removeClass("hidden");
 		$("#reset").removeClass("hidden");

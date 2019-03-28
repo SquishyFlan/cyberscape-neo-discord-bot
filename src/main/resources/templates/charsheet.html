@@ -12,6 +12,7 @@
 			originalChar = [[${character}]];
 			statConfig = [[${statConfig}]];
 			readOnly = [[${readOnly}]];
+      admin = [[${admin}]];
 		</script>
     <link rel="stylesheet" href="/css/charsheet.css"
 					th:href="@{/css/charsheet.css}" media="screen" />
@@ -122,7 +123,7 @@
 								<span class="specCost hidden" th:id="|${skill.literal}Spec2Cost|"></span>
 							</div>
 						</div>
-						<div class="skillBar" id="fireBar"></div>
+						<div class="skillBar" id="skillBar"></div>
 					</div>
         </div>
       </div>

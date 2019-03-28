@@ -109,6 +109,10 @@ public class CyberscapeService {
 	}
 
 	public void updateCharSkills(String userId, CharSkillsUpdate charStats) {
+		if (userId.equals("~template~")) {
+			throw new IllegalArgumentException("I'll be having none of that.");
+		}
+
 		CharStats oldStats = getCharacter(userId);
 		CharStats newStats = checkStats(userId, charStats);
 		StatConfig statConfig = getStatConfig();
