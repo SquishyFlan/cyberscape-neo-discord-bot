@@ -8,6 +8,7 @@ import com.titaniumtemplar.discordbot.discord.GuildSettings;
 import com.titaniumtemplar.discordbot.model.character.CharSkillsUpdate;
 import com.titaniumtemplar.discordbot.model.character.CharStats;
 import com.titaniumtemplar.discordbot.model.character.Skill;
+import com.titaniumtemplar.discordbot.model.exception.NoSuchCharacterException;
 import com.titaniumtemplar.discordbot.model.monster.MonsterTemplate;
 import com.titaniumtemplar.discordbot.model.stats.StatConfig;
 import com.titaniumtemplar.discordbot.repository.CyberscapeRepository;
@@ -108,18 +109,30 @@ public class CyberscapeService {
 		settings.setCombatChannels(combatChannels);
 	}
 
-	public void updateCharSkills(String userId, CharSkillsUpdate charStats) {
-		CharStats oldStats = getCharacter(userId);
-		CharStats newStats = checkStats(userId, charStats);
+	public void updateCharSkills(String userId, CharSkillsUpdate charStats, boolean admin) {
+
+		CharStats foundStats;
+		try {
+			foundStats = getCharacter(userId);
+		} catch (NoSuchCharacterException ex) {
+			if (!admin) throw ex;
+			foundStats = getCharacter("~template~");
+		}
+
+		CharStats oldStats = foundStats;
+		CharStats newStats = checkStats(userId, charStats, admin);
 		StatConfig statConfig = getStatConfig();
 
 		boolean noSpSpent = oldStats.getSpUsed() == newStats.getSpUsed();
 		boolean spOverspent = newStats.getSpUsed() > newStats.getSpTotal();
-		if (noSpSpent || spOverspent) {
+		if (!admin && (noSpSpent || spOverspent)) {
 			throw new IllegalArgumentException("I'll be having none of that.");
 		}
 		newStats.getSkills()
 			.forEach((skillType, skill) -> {
+				if (admin) {
+					return; // They can do what they want
+				}
 				Skill oldSkill = oldStats.getSkills().get(skillType);
 				if (skill.getRanks() < oldSkill.getRanks()
 					|| skill.getSpec1Ranks() < oldSkill.getSpec1Ranks()
@@ -141,9 +154,22 @@ public class CyberscapeService {
 		repo.updateCharacters(singleton(newStats));
 	}
 
-	public CharStats checkStats(String userId, CharSkillsUpdate charStats) {
-		CharStats newCs = getCharacter(userId).clone();
+	public CharStats checkStats(String userId, CharSkillsUpdate charStats, boolean admin) {
+		CharStats foundStats;
+		try {
+			foundStats = getCharacter(userId);
+		} catch (NoSuchCharacterException ex) {
+			if (!admin) throw ex;
+			foundStats = getCharacter("~template~");
+		}
+
+		CharStats newCs = foundStats.clone();
 		Map<SkillType, Skill> skills = newCs.getSkills();
+		if (admin) {
+			newCs.setLevel(charStats.getLevel());
+			newCs.setName(charStats.getName());
+			newCs.setUserId(charStats.getUserId().toLowerCase());
+		}
 		charStats.getSkills()
 			.forEach((skillType, skillDiff) ->
 				skills.get(skillType)

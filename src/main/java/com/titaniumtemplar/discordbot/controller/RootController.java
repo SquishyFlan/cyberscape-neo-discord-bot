@@ -6,6 +6,7 @@ import com.titaniumtemplar.discordbot.model.character.CharStats;
 import com.titaniumtemplar.discordbot.model.exception.NoSuchCharacterException;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import javax.inject.Inject;
+import javax.servlet.ServletContext;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,9 @@ public class RootController {
 	@Inject
 	ObjectMapper objectMapper;
 
+	@Inject
+	ServletContext servletContext;
+
 	@GetMapping("")
 	String index() {
 		return "redirect:/profile/";
@@ -52,6 +56,8 @@ public class RootController {
 		character.setName(username);
 		model.addAttribute("character", character);
 		model.addAttribute("charJson", objectMapper.writeValueAsString(character));
+		model.addAttribute("urlPrefix", servletContext.getContextPath());
+		model.addAttribute("admin", false);
 		model.addAttribute("statConfig", service.getStatConfig());
 		return "charsheet";
 	}
@@ -60,6 +66,7 @@ public class RootController {
 	String profile(@PathVariable String uid, Model model) {
 		CharStats character = service.getCharacter(uid);
 		model.addAttribute("readOnly", true);
+		model.addAttribute("admin", false);
 		model.addAttribute("character", character);
 		return "charsheet";
 	}

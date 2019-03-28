@@ -8,4 +8,7 @@ import lombok.Data;
 public class CharSkillsUpdate {
 
 	Map<SkillType, Skill> skills;
+	String name;
+	String userId;
+	int level;
 }

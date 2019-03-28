@@ -1,8 +1,17 @@
 var tempCharJson;
 var tempChar;
 var tempSpLeft;
+var tempLevel;
+var tempUid;
 var skillDiff = {};
 var inRequest = false;
+
+// From HTML
+var statConfig;
+var originalChar;
+var readOnly;
+var admin;
+var urlPrefix;
 
 function handleSkillButtons() {
 	var anyPointSpent = false;
@@ -21,11 +30,14 @@ function handleSkillButtons() {
 		var tempSkill = skillDiff[skillType] || {};
 
 		// We have spent a skill point, show minus butan and save and reset butans
-		if (tempSkill.ranks) {
-			anyPointSpent = true;
+		if (tempSkill.ranks || (admin && skill.ranks > 0)) {
+			if (tempSkill.ranks) {
+				anyPointSpent = true;
+			}
 
 			// Can't decrement a skill below spec level
-			if (skill.spec1Ranks === skill.ranks || skill.spec2Ranks === skill.ranks) {
+			if ((statConfig.spec1Start === skill.ranks && skill.spec1Ranks)
+							|| (statConfig.spec2Start === skill.ranks && skill.spec2Ranks)) {
 				$("#" + skillType + "Decrement").addClass("hidden");
 			} else {
 				$("#" + skillType + "Decrement").removeClass("hidden");
@@ -110,7 +122,6 @@ function handleSkillButtons() {
 	});
 
 	if (anyPointSpent) {
-		// TODO: Put these in a div to hide at the same time, duh
 		$("#save").removeClass("hidden");
 		$("#reset").removeClass("hidden");
 	} else {
@@ -142,7 +153,13 @@ function decrementSkill() {
 	}
 
 	var skillType = $(this).attr("data-skill-type");
+	if (!skillDiff[skillType])
+		skillDiff[skillType] = {};
+	var skill = skillDiff[skillType];
+
 	var skillField = $(this).attr("data-skill-field");
+	if (!skill[skillField])
+		skill[skillField] = 0;
 	skillDiff[skillType][skillField]--;
 	recalcStats();
 }
@@ -160,15 +177,55 @@ function nameSkill() {
 	handleSkillButtons();
 }
 
+function updateLevel() {
+	var newLevel = $(this).val();
+	if (newLevel !== tempLevel) {
+		tempLevel = newLevel;
+		recalcStats();
+	}
+}
+
+function loadCharacter() {
+	var newUid = $(this).val();
+	if (newUid === tempUid) {
+		return;
+	}
+
+	if (newUid === "") {
+		newUid = "~template~";
+	}
+	tempUid = newUid;
+
+	$.ajax({
+		url: urlPrefix + "/api/character/" + tempUid,
+		type: "GET",
+		dataType: "json",
+		success: function (response) {
+			tempChar = response;
+			skillDiff = {};
+			inRequest = false;
+			redrawStats();
+		}
+	});
+}
+
 function recalcStats() {
 	if (inRequest) {
 		return;
 	}
 	inRequest = true;
+
+	var reqObj = {skills:skillDiff};
+	if (admin) {
+		reqObj.userId = $("#uidInput").val();
+		reqObj.name = $("#name").val();
+		reqObj.level = $("#levelValue").val();
+	}
+
 	$.ajax({
-		url: "../api/statCheck",
+		url: urlPrefix + "/api/statCheck",
 		type: "POST",
-		data: JSON.stringify({skills:skillDiff}),
+		data: JSON.stringify(reqObj),
 		contentType: "application/json; charset=utf-8",
 		dataType: "json",
 		success: function (response) {
@@ -181,6 +238,10 @@ function recalcStats() {
 
 function redrawStats() {
 	// Redraw Vitals
+	$("#name").text(tempChar.name);
+	$("#name").val(tempChar.name);
+	$("#levelValue").text(tempChar.level);
+	$("#levelValue").val(tempChar.level);
 	$("#hpCurrent").text(tempChar.hpCurrent);
 	$("#hpMax").text(tempChar.hpMax);
 	$("#mpCurrent").text(tempChar.mpCurrent);
@@ -230,22 +291,29 @@ function saveChar() {
 		return;
 	}
 	inRequest = true;
+	$("#save").attr("disabled", true);
+
+	var reqObj = {skills:skillDiff};
+	if (admin) {
+		reqObj.userId = $("#uidInput").val();
+		reqObj.name = $("#name").val();
+		reqObj.level = $("#levelValue").val();
+	}
+
 	$.ajax({
-		url: "../api/character",
+		url: urlPrefix + "/api/character",
 		type: "PUT",
-		data: JSON.stringify({skills:skillDiff}),
+		data: JSON.stringify(reqObj),
 		contentType: "application/json; charset=utf-8",
 		dataType: "json",
 		success: function () {
 			tempCharJson = JSON.stringify(tempChar);
 			skillDiff = {};
 			inRequest = false;
+			$("#save").attr("disabled", false);
 			handleSkillButtons();
 		}
 	});
-	// Busify Save button, prevent double-click
-	// Ajax request to save character
-	// Rewrite originalChar with cloned tempChar
 }
 
 function reset() {
@@ -255,6 +323,11 @@ function reset() {
 }
 
 $(document).ready(function () {
+
+	tempCharJson = JSON.stringify(originalChar);
+	tempChar = JSON.parse(tempCharJson);
+	tempLevel = tempChar.level;
+
 	if (readOnly) {
 		$.each(tempChar.skills, function (skillType, skill) {
 			$("#" + skillType + "Cost").hide();
@@ -264,14 +337,13 @@ $(document).ready(function () {
 		return;
 	}
 
-	tempCharJson = JSON.stringify(originalChar);
-	tempChar = JSON.parse(tempCharJson);
-
 	$("input.dec").on("click", decrementSkill);
 	$("input.inc").on("click", incrementSkill);
 	$("input#save").on("click", saveChar);
 	$("input#reset").on("click", reset);
 	$("input.specName").on("blur", nameSkill);
+	$("input#levelValue").on("blur", updateLevel);
+	$("input#uidInput").on("blur", loadCharacter);
 	// TODO: Make specialization name boxen red if they're empty onBlur, and apply them to the diff
 
 	handleSkillButtons();

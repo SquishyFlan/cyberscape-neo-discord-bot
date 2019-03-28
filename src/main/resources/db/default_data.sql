@@ -83,7 +83,8 @@ INSERT INTO monster (id, name, hp, xp) VALUES
 
 INSERT INTO character (id, user_id, name, level, xp, hp_current, mp_current) VALUES
  ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'roland', 'Roland', 50, -1, -1, -1),
- ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'hyperion', 'Hyperion', 50, -1, -1, -1);
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'hyperion', 'Hyperion', 50, -1, -1, -1),
+ ('710a70ee-f436-4cec-b323-419e515cb046', '~template~', 'Template', 50, -1, -1, -1);
 
 INSERT INTO character_skill VALUES
  ('150b0c3d-db29-4a2f-b8b4-edec40ba6dff', 'fire', 15, 'Burn', 5, '', 0),
@@ -109,4 +110,16 @@ INSERT INTO character_skill VALUES
  ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'shift', 0, '', 0, '', 0),
  ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'life', 0, '', 0, '', 0),
  ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'space', 0, '', 0, '', 0),
- ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'gravity', 0, '', 0, '', 0);
+ ('6e490be9-35ae-4fb2-9fba-ead60fd75a23', 'gravity', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'fire', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'water', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'lightning', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'wind', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'earth', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'sonic', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'martial', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'material', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'shift', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'life', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'space', 0, '', 0, '', 0),
+ ('710a70ee-f436-4cec-b323-419e515cb046', 'gravity', 0, '', 0, '', 0);
