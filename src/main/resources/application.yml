@@ -61,3 +61,9 @@ spring:
   profiles: production
 game:
   baseUrl: https://titaniumtemplar.com/game/
+---
+spring:
+  profiles: debug
+logging:
+  level:
+    org.springframework.web: DEBUG
