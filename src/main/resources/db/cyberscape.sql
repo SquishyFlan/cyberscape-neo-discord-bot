@@ -5,7 +5,8 @@ CREATE TABLE character (
   level INT NOT NULL,
   xp INT NOT NULL,
   hp_current INT NOT NULL,
-  mp_current INT NOT NULL
+  mp_current INT NOT NULL,
+  avatar_url TEXT NOT NULL DEFAULT ''
 );
 
 CREATE UNIQUE INDEX ON character (user_id);

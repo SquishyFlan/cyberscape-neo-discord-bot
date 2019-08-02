@@ -5,49 +5,51 @@
     <title>Cyberscape Neo Stat Calculator</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <script src="http://cdn.jsdelivr.net/webjars/jquery/3.3.1/jquery.min.js"
-		th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+    th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
     <script src="/js/charsheet.js"
-		th:src="@{/js/charsheet.js}"></script>
-		<script th:inline="javascript">
+    th:src="@{/js/charsheet.js}"></script>
+    <script th:inline="javascript">
 			originalChar = [[${character}]];
 			statConfig = [[${statConfig}]];
 			readOnly = [[${readOnly}]];
 			admin = [[${admin}]];
 			urlPrefix = [[${urlPrefix}]];
-		</script>
+    </script>
     <link rel="stylesheet" href="/css/charsheet.css"
-					th:href="@{/css/charsheet.css}" media="screen" />
+          th:href="@{/css/charsheet.css}" media="screen" />
   </head>
   <body>
     <div id="main">
       <div class="section" id="top">
         <div id="nameDiv">
-					<span id="name" th:text="${character.name}" th:if="${!admin}">Shoe</span>
-				</div>
-				<div id="uidInputDiv" th:if="${admin}">
-					<label class="uidInputLabel" for="uidInput">User ID:</label>
-					<input id="uidInput" />
-				</div>
-				<div id="nameInputDiv" th:if="${admin}">
-					<label class="nameInputLabel" for="name">Name:</label>
-					<input id="name" th:value="${character.name}"/>
-				</div>
+          <span id="name" th:text="${character.name}" th:if="${!admin}">Shoe</span>
+        </div>
+        <div id="uidInputDiv" th:if="${admin}">
+          <label class="uidInputLabel" for="uidInput">User ID:</label>
+          <input id="uidInput" />
+        </div>
+        <div id="nameInputDiv" th:if="${admin}">
+          <label class="nameInputLabel" for="name">Name:</label>
+          <input id="name" th:value="${character.name}"/>
+        </div>
+        <div th:if="${character.avatarUrl != ''}" id="avatarDiv" class="avatarContainer">
+          <a th:href="${character.avatarUrl}" target="_blank">
+            <img id="avatar" th:src="${character.avatarUrl}" />
+          </a>
+        </div>
       </div>
 
       <div class="section" id="mid">
-				<!--        <div id="avatarDiv">
-									<img id="avatar" />
-								</div>-->
         <div class="stat" id="level">
           <span id="levelLabel" class="statLabel">LV</span>
           <span id="levelValue" class="statValue" th:text="${character.level}" th:if="${!admin}">1</span>
-					<input id="levelValue" th:if="${admin}" value="50"/>
+          <input id="levelValue" th:if="${admin}" value="50"/>
         </div>
         <div class="stat" id="exp">
           <span id="expLabel" class="statLabel">XP</span>
           <span id="expValue" class="statValue" th:text="${character.xp == -1}? 'MAX' : ${character.xp}">0</span>
-					<span class="slash" th:if="${character.xp > -1}">/</span>
-					<span id="expNextValue" th:if="${character.xp > -1}" th:text="${character.xpNext}"></span>
+          <span class="slash" th:if="${character.xp > -1}">/</span>
+          <span id="expNextValue" th:if="${character.xp > -1}" th:text="${character.xpNext}"></span>
         </div>
         <div class="stat" id="vitals">
           <div id="hp">
@@ -71,72 +73,72 @@
             <span id="spMax" th:text="${character.spTotal}">0</span>
             <div id="spBar"></div>
           </div>
-					<div class="stat" th:each="stat : ${T(com.titaniumtemplar.db.jooq.enums.StatType).values()}" th:id="${stat.literal}">
-						<span class="statLabel" th:id="|${stat.literal}Label|" th:text="${#strings.toUpperCase(stat.literal)}"></span>
-						<span class="statValue" th:id="|${stat.literal}Value|" th:text="${character.stats.get(stat).get()}">10</span>
-					</div>
+          <div class="stat" th:each="stat : ${T(com.titaniumtemplar.db.jooq.enums.StatType).values()}" th:id="${stat.literal}">
+            <span class="statLabel" th:id="|${stat.literal}Label|" th:text="${#strings.toUpperCase(stat.literal)}"></span>
+            <span class="statValue" th:id="|${stat.literal}Value|" th:text="${character.stats.get(stat).get()}">10</span>
+          </div>
         </div>
 
       </div>
 
       <div class="section" id="skills" th:with="clusters = ${ {'Elemental', 'Natural', 'Physical', 'Mystical'} }">
-				<input type="button" value="Save" id="save" class="hidden" />
-				<input type="button" value="Reset" id="reset" class="hidden" />
+        <input type="button" value="Save" id="save" class="hidden" />
+        <input type="button" value="Reset" id="reset" class="hidden" />
 
-				<div class="skill" th:each="skill : ${T(com.titaniumtemplar.db.jooq.enums.SkillType).values()}" th:id="${skill.literal}">
-					<span th:if="${skillStat.index % 3 == 0}" class="skillCluster" th:text="${clusters[skillStat.index / 3]}">Elemental</span>
-					<div class="skillBlock">
-						<span class="skillLabel" th:id="|${skill.literal}Label|" th:text="${#strings.capitalize(skill.literal)}">Fire</span>
-						<span class="skillValue" th:id="|${skill.literal}Value|" th:text="${character.skills.get(skill).ranks}">16</span>
-						<input type="button" value="-" class="dec hidden"
-									 th:data-skill-type="${skill.literal}"
-									 data-skill-field="ranks" th:id="|${skill.literal}Decrement|" />
-						<input type="button" value="+" class="inc hidden"
-									 th:data-skill-type="${skill.literal}"
-									 data-skill-field="ranks" th:id="|${skill.literal}Increment|" />
-						<span class="skillCost" th:id="|${skill.literal}Cost|"></span>
-						<div class="specializations">
-							<div>
-								<span th:class="${character.skills.get(skill).spec1Ranks}? 'specLabel' : 'specLabel hidden'"
-											th:id="|${skill.literal}Spec1Label|"
-											th:text="${character.skills.get(skill).spec1Name}"></span>
-								<span th:class="${character.skills.get(skill).spec1Ranks}? 'specRanks' : 'specRanks hidden'"
-											th:id="|${skill.literal}Spec1Ranks|"
-											th:text="${character.skills.get(skill).spec1Ranks}"></span>
-								<input type="text" class="specName hidden"
-											 data-skill-field="spec1Name"
-											 th:data-skill-type="${skill.literal}"
-											 th:id="|${skill.literal}Spec1Name|" />
-								<input type="button" value="-" class="dec hidden"
-											 th:data-skill-type="${skill.literal}"
-											 data-skill-field="spec1Ranks" th:id="|${skill.literal}Spec1Decrement|" />
-								<input type="button" value="+" class="inc hidden"
-											 th:data-skill-type="${skill.literal}"
-											 data-skill-field="spec1Ranks" th:id="|${skill.literal}Spec1Increment|" />
-								<span class="specCost hidden" th:id="|${skill.literal}Spec1Cost|"></span>
-							</div>
-							<div>
-								<span th:class="${character.skills.get(skill).spec2Ranks}? 'specLabel' : 'specLabel hidden'"
-											th:id="|${skill.literal}Spec2Label|"
-											th:text="${character.skills.get(skill).spec2Name}"></span>
-								<span th:class="${character.skills.get(skill).spec2Ranks}? 'specRanks' : 'specRanks hidden'"
-											th:id="|${skill.literal}Spec2Ranks|"
-											th:text="${character.skills.get(skill).spec2Ranks}"></span>
-								<input type="text" class="specName hidden"
-											 data-skill-field="spec2Name"
-											 th:data-skill-type="${skill.literal}"
-											 th:id="|${skill.literal}Spec2Name|" />
-								<input type="button" value="-" class="dec hidden"
-											 th:data-skill-type="${skill.literal}"
-											 data-skill-field="spec2Ranks" th:id="|${skill.literal}Spec2Decrement|" />
-								<input type="button" value="+" class="inc hidden"
-											 th:data-skill-type="${skill.literal}"
-											 data-skill-field="spec2Ranks" th:id="|${skill.literal}Spec2Increment|" />
-								<span class="specCost hidden" th:id="|${skill.literal}Spec2Cost|"></span>
-							</div>
-						</div>
-						<div class="skillBar" th:id="|${skill.literal}Bar|"></div>
-					</div>
+        <div class="skill" th:each="skill : ${T(com.titaniumtemplar.db.jooq.enums.SkillType).values()}" th:id="${skill.literal}">
+          <span th:if="${skillStat.index % 3 == 0}" class="skillCluster" th:text="${clusters[skillStat.index / 3]}">Elemental</span>
+          <div class="skillBlock">
+            <span class="skillLabel" th:id="|${skill.literal}Label|" th:text="${#strings.capitalize(skill.literal)}">Fire</span>
+            <span class="skillValue" th:id="|${skill.literal}Value|" th:text="${character.skills.get(skill).ranks}">16</span>
+            <input type="button" value="-" class="dec hidden"
+                   th:data-skill-type="${skill.literal}"
+                   data-skill-field="ranks" th:id="|${skill.literal}Decrement|" />
+            <input type="button" value="+" class="inc hidden"
+                   th:data-skill-type="${skill.literal}"
+                   data-skill-field="ranks" th:id="|${skill.literal}Increment|" />
+            <span class="skillCost" th:id="|${skill.literal}Cost|"></span>
+            <div class="specializations">
+              <div>
+                <span th:class="${character.skills.get(skill).spec1Ranks}? 'specLabel' : 'specLabel hidden'"
+                      th:id="|${skill.literal}Spec1Label|"
+                      th:text="${character.skills.get(skill).spec1Name}"></span>
+                <span th:class="${character.skills.get(skill).spec1Ranks}? 'specRanks' : 'specRanks hidden'"
+                      th:id="|${skill.literal}Spec1Ranks|"
+                      th:text="${character.skills.get(skill).spec1Ranks}"></span>
+                <input type="text" class="specName hidden"
+                       data-skill-field="spec1Name"
+                       th:data-skill-type="${skill.literal}"
+                       th:id="|${skill.literal}Spec1Name|" />
+                <input type="button" value="-" class="dec hidden"
+                       th:data-skill-type="${skill.literal}"
+                       data-skill-field="spec1Ranks" th:id="|${skill.literal}Spec1Decrement|" />
+                <input type="button" value="+" class="inc hidden"
+                       th:data-skill-type="${skill.literal}"
+                       data-skill-field="spec1Ranks" th:id="|${skill.literal}Spec1Increment|" />
+                <span class="specCost hidden" th:id="|${skill.literal}Spec1Cost|"></span>
+              </div>
+              <div>
+                <span th:class="${character.skills.get(skill).spec2Ranks}? 'specLabel' : 'specLabel hidden'"
+                      th:id="|${skill.literal}Spec2Label|"
+                      th:text="${character.skills.get(skill).spec2Name}"></span>
+                <span th:class="${character.skills.get(skill).spec2Ranks}? 'specRanks' : 'specRanks hidden'"
+                      th:id="|${skill.literal}Spec2Ranks|"
+                      th:text="${character.skills.get(skill).spec2Ranks}"></span>
+                <input type="text" class="specName hidden"
+                       data-skill-field="spec2Name"
+                       th:data-skill-type="${skill.literal}"
+                       th:id="|${skill.literal}Spec2Name|" />
+                <input type="button" value="-" class="dec hidden"
+                       th:data-skill-type="${skill.literal}"
+                       data-skill-field="spec2Ranks" th:id="|${skill.literal}Spec2Decrement|" />
+                <input type="button" value="+" class="inc hidden"
+                       th:data-skill-type="${skill.literal}"
+                       data-skill-field="spec2Ranks" th:id="|${skill.literal}Spec2Increment|" />
+                <span class="specCost hidden" th:id="|${skill.literal}Spec2Cost|"></span>
+              </div>
+            </div>
+            <div class="skillBar" th:id="|${skill.literal}Bar|"></div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 package com.titaniumtemplar.discordbot.service;
 
 import static java.util.Collections.singleton;
+import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
 
 import com.titaniumtemplar.db.jooq.enums.SkillType;
@@ -166,6 +167,9 @@ public class CyberscapeService {
 		CharStats newCs = foundStats.clone();
 		Map<SkillType, Skill> skills = newCs.getSkills();
 		if (admin) {
+			if (foundStats.getUserId().equals("~template~")) {
+				newCs.setId(randomUUID());
+			}
 			newCs.setLevel(charStats.getLevel());
 			newCs.setName(charStats.getName());
 			newCs.setUserId(charStats.getUserId().toLowerCase());
