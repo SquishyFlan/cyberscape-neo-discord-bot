@@ -45,6 +45,7 @@ public class CharStats {
 	private int mpCurrent;
 	private int xp;
 	private int level;
+	private String avatarUrl;
 	private Map<SkillType, Skill> skills = new HashMap<>();
 
 	@JsonIgnore
@@ -72,6 +73,7 @@ public class CharStats {
 		cs.setXp(xp);
 		cs.setLevel(level);
 		cs.setSpecs(new HashSet<>(specs));
+		cs.setAvatarUrl(avatarUrl);
 		skills.forEach((skillType, skill) ->
 			cs.putSkill(skillType, Skill.builder()
 				.ranks(skill.getRanks())

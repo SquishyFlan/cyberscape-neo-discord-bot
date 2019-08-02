@@ -16,6 +16,15 @@ body {
 	font-size: 30px;
 }
 
+.avatarContainer {
+  width: 500px;
+}
+
+.avatarContainer img {
+  max-height: 100%;
+  max-width: 100%;
+}
+
 div.section {
   border: 1px solid #ccc;
   padding: 15px;

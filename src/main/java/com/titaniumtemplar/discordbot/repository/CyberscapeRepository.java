@@ -128,6 +128,7 @@ public class CyberscapeRepository {
 		newChar.setXp(0);
 		newChar.setHpCurrent(-1);
 		newChar.setMpCurrent(-1);
+		newChar.setAvatarUrl("");
 		newChar.store();
 
 		List<CharacterSkillRecord> skillRecords = Arrays.stream(SkillType.values())
@@ -168,6 +169,7 @@ public class CyberscapeRepository {
 		cs.setMpCurrent(record.getMpCurrent());
 		cs.setXp(record.getXp());
 		cs.setLevel(record.getLevel());
+		cs.setAvatarUrl(record.getAvatarUrl());
 
 		skillRecords.forEach((r) -> {
 			SkillType skill = r.getSkill();
