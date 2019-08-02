@@ -77,9 +77,9 @@ INSERT INTO monster (id, name, hp, xp, level) VALUES
  ('78dd427c-88df-40c4-a3f8-38f4e1cd527a', 'Highwayman', 1320, 640, 5),
  ('b1fd091f-5fe9-4efd-a8c9-04b6fbac2bb2', 'Wandering Berzerker', 2001, 900, 7),
  ('7a388f50-8610-4acd-a529-24154e6ae82a', 'Cursed Cube', 4096, 2197, 9),
- ('421f2a94-b09e-4698-adbc-c192ea41b625', 'Basalt-Skin Bear', 5800, 3190, 11),
- ('038437a7-d4ff-4dbd-9021-17f20b86712c', 'Displacer Treant', 7777, 4444, 13),
- ('f59eec6c-2fd1-4c32-bf9f-7ce548d2ad0b', 'The Innkeeper''s Door', 10000, 10000, 15);
+ ('421f2a94-b09e-4698-adbc-c192ea41b625', 'Basalt-Skin Bear', 5800, 3190, 15),
+ ('038437a7-d4ff-4dbd-9021-17f20b86712c', 'Displacer Treant', 7777, 4444, 25),
+ ('f59eec6c-2fd1-4c32-bf9f-7ce548d2ad0b', 'The Innkeeper''s Door', 10000, 10000, 35);
 
 INSERT INTO monster_skill (monster_id, skill, ranks, spec1_name, spec1_ranks, spec2_name, spec2_ranks) VALUES
  ('269f9976-b499-4f99-8b07-f8c64c34aff3', 'fire', 0, '', 0, '', 0),
