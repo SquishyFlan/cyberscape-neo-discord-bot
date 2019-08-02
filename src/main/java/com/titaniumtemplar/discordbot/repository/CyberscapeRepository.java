@@ -5,6 +5,7 @@ import static com.titaniumtemplar.db.jooq.tables.CharacterSkill.CHARACTER_SKILL;
 import static com.titaniumtemplar.db.jooq.tables.GuildCombatChannels.GUILD_COMBAT_CHANNELS;
 import static com.titaniumtemplar.db.jooq.tables.GuildSettings.GUILD_SETTINGS;
 import static com.titaniumtemplar.db.jooq.tables.Monster.MONSTER;
+import static com.titaniumtemplar.db.jooq.tables.MonsterSkill.MONSTER_SKILL;
 import static com.titaniumtemplar.db.jooq.tables.SkillScale.SKILL_SCALE;
 import static com.titaniumtemplar.db.jooq.tables.StatLevelScale.STAT_LEVEL_SCALE;
 import static com.titaniumtemplar.db.jooq.tables.StatSkillScale.STAT_SKILL_SCALE;
@@ -19,6 +20,7 @@ import com.titaniumtemplar.db.jooq.tables.records.CharacterRecord;
 import com.titaniumtemplar.db.jooq.tables.records.CharacterSkillRecord;
 import com.titaniumtemplar.db.jooq.tables.records.GuildCombatChannelsRecord;
 import com.titaniumtemplar.db.jooq.tables.records.MonsterRecord;
+import com.titaniumtemplar.db.jooq.tables.records.MonsterSkillRecord;
 import com.titaniumtemplar.db.jooq.tables.records.SkillScaleRecord;
 import com.titaniumtemplar.db.jooq.tables.records.VitalScaleRecord;
 import com.titaniumtemplar.discordbot.discord.GuildSettings;
@@ -34,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -273,16 +276,29 @@ public class CyberscapeRepository {
 	}
 
 	public List<MonsterTemplate> getMonsters() {
+		Map<UUID, List<Skill>> skills = db.selectFrom(MONSTER_SKILL)
+			.fetchGroups(MONSTER_SKILL.MONSTER_ID, this::mapSkill);
+
 		return db.selectFrom(MONSTER)
-			.fetch(this::mapMonster);
+			.fetch((r) -> mapMonster(r, skills));
 	}
 
-	private MonsterTemplate mapMonster(MonsterRecord record) {
+	private MonsterTemplate mapMonster(MonsterRecord record, Map<UUID, List<Skill>> skills) {
 		return MonsterTemplate.builder()
 			.id(record.getId())
 			.name(record.getName())
-			.maxHp(record.getHp())
+			.hpMax(record.getHp())
 			.xp(record.getXp())
+			.build();
+	}
+
+	private Skill mapSkill(MonsterSkillRecord r) {
+		return Skill.builder()
+			.ranks(r.getRanks())
+			.spec1Name(r.getSpec1Name())
+			.spec1Ranks(r.getSpec1Ranks())
+			.spec2Name(r.getSpec2Name())
+			.spec2Ranks(r.getSpec2Ranks())
 			.build();
 	}
 
