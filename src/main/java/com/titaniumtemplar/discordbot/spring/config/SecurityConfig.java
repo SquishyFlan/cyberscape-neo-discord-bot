@@ -14,7 +14,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 			.csrf().disable()
 			.authorizeRequests()
 			.requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-			.mvcMatchers("/profile/**").permitAll()
+			.mvcMatchers("/profile/{uid}/**").permitAll()
 			.anyRequest().authenticated()
 			.and()
 			.oauth2Login()
