@@ -278,20 +278,27 @@ public class CyberscapeRepository {
 	}
 
 	public List<MonsterTemplate> getMonsters() {
-		Map<UUID, List<Skill>> skills = db.selectFrom(MONSTER_SKILL)
-			.fetchGroups(MONSTER_SKILL.MONSTER_ID, this::mapSkill);
+		Map<UUID, Result<MonsterSkillRecord>> skills = db.selectFrom(MONSTER_SKILL)
+			.fetchGroups(MONSTER_SKILL.MONSTER_ID);
 
 		return db.selectFrom(MONSTER)
 			.fetch((r) -> mapMonster(r, skills));
 	}
 
-	private MonsterTemplate mapMonster(MonsterRecord record, Map<UUID, List<Skill>> skills) {
-		return MonsterTemplate.builder()
+	private MonsterTemplate mapMonster(
+		MonsterRecord record,
+		Map<UUID, Result<MonsterSkillRecord>> skills) {
+
+		var builder = MonsterTemplate.builder()
 			.id(record.getId())
 			.name(record.getName())
 			.hpMax(record.getHp())
-			.xp(record.getXp())
-			.build();
+			.xp(record.getXp());
+
+		skills.get(record.getId())
+			.forEach((skillRecord) -> builder.skill(skillRecord.getSkill(), mapSkill(skillRecord)));
+
+		return builder.build();
 	}
 
 	private Skill mapSkill(MonsterSkillRecord r) {

@@ -29,6 +29,7 @@ public class Monster {
 		return Monster.builder()
 			.name(template.getName())
 			.maxHp(template.getHpMax())
+			.currentHp(template.getHpMax())
 			.xp(template.getXp())
 			.skills(template.getSkills())
 			.stats(template.getStats())

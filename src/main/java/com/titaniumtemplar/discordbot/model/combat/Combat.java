@@ -3,12 +3,17 @@ package com.titaniumtemplar.discordbot.model.combat;
 import static com.titaniumtemplar.db.jooq.enums.StatType.dex;
 import static com.titaniumtemplar.db.jooq.enums.StatType.int_;
 import static com.titaniumtemplar.db.jooq.enums.StatType.str;
+import static com.titaniumtemplar.discordbot.model.combat.AttackType.ATTACK;
+import static com.titaniumtemplar.discordbot.model.combat.AttackType.BOLT;
+import static com.titaniumtemplar.discordbot.model.combat.AttackType.SHOOT;
+import static java.util.Collections.reverseOrder;
+import static java.util.Comparator.comparing;
 
 import com.titaniumtemplar.discordbot.model.character.CharStats;
 import com.titaniumtemplar.discordbot.model.monster.Monster;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.dv8tion.jda.core.entities.Guild;
@@ -28,13 +33,13 @@ public class Combat {
 	private String lastRoundText = "";
 	private int ignoredRounds = 0;
 
-	private final Set<String> participantUids = new HashSet<>();
+	private final Map<String, CharStats> participants = new HashMap<>();
 
 	public void resolveRound() {
 		previousRound = currentRound;
-		lastRoundText = previousRound.resolve(monster);
+    participants.putAll(previousRound.getParticipants());
+		lastRoundText = previousRound.resolve(monster, createMonsterAttack(monster));
 		currentRound = new Round(previousRound.getNumber() + 1);
-    participantUids.addAll(previousRound.getParticipants());
 		if (previousRound.isEmpty()) {
 			ignoredRounds++;
 		} else {
@@ -54,7 +59,7 @@ public class Combat {
 
 		calculateDamage(character, attack);
 
-		currentRound.addAttack(character.getUserId(), attack);
+		currentRound.addAttack(character, attack);
 	}
 
 	public void removeAttack(String userId) {
@@ -84,5 +89,55 @@ public class Combat {
 		}
 
 		attack.setDamage(Math.round(baseDamage));
+	}
+
+	private MonsterAttack createMonsterAttack(Monster monster) {
+		var topStat = monster.getStats()
+			.entrySet()
+			.stream()
+			.filter((stat) -> stat.getKey() == str || stat.getKey() == dex || stat.getKey() == int_)
+			.sorted(comparing((entry) -> entry.getValue().get(), reverseOrder()))
+			.findFirst()
+			.get();
+
+		var baseDamage = topStat.getValue()
+			.get();
+
+		float randMultiplier = 0.6f + RAND.nextFloat() * 0.2f;
+		baseDamage *= randMultiplier;
+
+		AttackType attackType;
+		switch (topStat.getKey())
+		{
+			case str:
+				attackType = ATTACK;
+				break;
+			case dex:
+				attackType = SHOOT;
+				break;
+			case int_:
+				attackType = BOLT;
+				break;
+			default:
+				attackType = ATTACK;
+				break;
+		}
+
+		var validTargets = participants.values()
+			.stream()
+			.filter((charStats) -> charStats.getHpCurrent() > 0)
+			.toArray(CharStats[]::new);
+
+		CharStats target = null;
+		if (validTargets.length > 0) {
+			target = validTargets[RAND.nextInt(validTargets.length)];
+		}
+
+		return MonsterAttack.builder()
+			.attackType(attackType)
+			.damage(Math.round(baseDamage))
+			.monsterName(monster.getName())
+			.target(target)
+			.build();
 	}
 }

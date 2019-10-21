@@ -46,6 +46,12 @@ public abstract class CombatCommand implements DiscordCommand {
 				return;
 			}
 			character.setName(member.getEffectiveName());
+
+			if (character.isDead()) {
+				sendDm(author, "I'm sorry, but your character is dead and cannot continue this combat!");
+				return;
+			}
+
 			Specialization specialization = getSpecialization();
 
 			if (specialization != null) {

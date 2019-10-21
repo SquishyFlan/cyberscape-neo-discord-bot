@@ -8,6 +8,7 @@ import static java.util.stream.Collectors.toList;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.titaniumtemplar.db.jooq.enums.SkillType;
 import com.titaniumtemplar.db.jooq.enums.StatType;
+import com.titaniumtemplar.discordbot.model.combat.MonsterAttack;
 import com.titaniumtemplar.discordbot.model.combat.Specialization;
 import com.titaniumtemplar.discordbot.model.stats.StatConfig;
 import com.titaniumtemplar.discordbot.model.stats.StatLevelScale;
@@ -243,5 +244,13 @@ public class CharStats {
 
 	public boolean canLevelUp() {
 		return !maxLevel();
+	}
+
+	public boolean isDead() {
+		return hpCurrent <= 0;
+	}
+
+	public void applyAttack(MonsterAttack attack) {
+		hpCurrent -= Math.max(attack.getDamage(), 0);
 	}
 }

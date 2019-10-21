@@ -1,8 +1,5 @@
 package com.titaniumtemplar.discordbot.model.monster;
 
-import static com.titaniumtemplar.db.jooq.enums.StatType.int_;
-import static com.titaniumtemplar.db.jooq.enums.StatType.vit;
-import static com.titaniumtemplar.db.jooq.enums.StatType.wis;
 
 import com.titaniumtemplar.db.jooq.enums.SkillType;
 import com.titaniumtemplar.db.jooq.enums.StatType;
@@ -11,6 +8,7 @@ import com.titaniumtemplar.discordbot.model.stats.StatConfig;
 import com.titaniumtemplar.discordbot.model.stats.StatLevelScale;
 import com.titaniumtemplar.discordbot.model.stats.StatSkillScale;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,8 +30,7 @@ public class MonsterTemplate {
 	@Singular
 	private Map<SkillType, Skill> skills;
 
-	@Singular
-	private Map<StatType, AtomicInteger> stats;
+	private final Map<StatType, AtomicInteger> stats = new HashMap<>();
 
 	// Derived values
 	private int hpMax;
@@ -151,11 +148,12 @@ public class MonsterTemplate {
 
 		spLeft = spTotal - spUsed;
 
-		hpMax = config.getHpBase()
-			+ stats.get(vit).get() * config.getHpPerVit();
-		mpMax = config.getMpBase()
-			+ stats.get(int_).get() * config.getMpPerInt()
-			+ stats.get(wis).get() * config.getMpPerWis();
+		// Use the hardcoded values for now
+//		hpMax = config.getHpBase()
+//			+ stats.get(vit).get() * config.getHpPerVit();
+//		mpMax = config.getMpBase()
+//			+ stats.get(int_).get() * config.getMpPerInt()
+//			+ stats.get(wis).get() * config.getMpPerWis();
 	}
 
 	public void putSkill(SkillType skill, Skill values) {

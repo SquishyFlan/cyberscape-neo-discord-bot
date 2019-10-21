@@ -482,8 +482,9 @@ public class Myra extends ListenerAdapter {
 			Monster monster = combat.getMonster();
 			combats.remove(guild.getId());
 
-			Set<String> levelups = service.awardXp(combat.getParticipantUids(), monster.getXp());
-			String combatants = combat.getParticipantUids()
+			Set<String> levelups = service.awardXp(combat.getParticipants().values(), monster.getXp());
+			String combatants = combat.getParticipants()
+				.keySet()
 				.stream()
 				.map((memId) -> Optional.of(memId)
 					.map(guild::getMemberById)
@@ -536,7 +537,11 @@ public class Myra extends ListenerAdapter {
 	}
 
 	public void cancelCombat(String guildId) {
-		combats.remove(guildId);
+		var combat = combats.remove(guildId);
+		combat.getParticipants()
+			.values()
+			.forEach((character) -> character.setHpCurrent(character.getHpMax()));
+
 		combatFutures.remove(guildId).cancel(false);
 		log.info("Canceled combat for guild {}", discord.getGuildById(guildId).getName());
 	}
