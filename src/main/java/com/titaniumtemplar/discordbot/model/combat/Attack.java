@@ -5,21 +5,21 @@ import lombok.Data;
 
 @Data
 @Builder
-public class Attack
-{
-  String charName;
-  int damage;
-  AttackType attackType;
-  Specialization spec;
+public class Attack {
 
-  public String getCombatantString() {
-    return charName + " - "
-	+ attackType.getDisplay()
-	+ (spec != null ? " (" + spec.name() + ")" : "");
-  }
+	String charName;
+	int damage;
+	AttackType attackType;
+	Specialization spec;
 
-  public String getDamageString() {
-    return charName + " " + attackType.getVerb()
-	+ " for " + damage + " damage!";
-  }
+	public String getCombatantString() {
+		return charName + " - "
+			+ attackType.getDisplay()
+			+ (spec != null ? " (" + spec.name() + ")" : "");
+	}
+
+	public String getDamageString() {
+		return charName + " " + attackType.getVerb()
+			+ " for " + damage + " damage!";
+	}
 }

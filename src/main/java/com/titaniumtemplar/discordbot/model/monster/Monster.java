@@ -1,5 +1,8 @@
 package com.titaniumtemplar.discordbot.model.monster;
 
+import com.titaniumtemplar.db.jooq.enums.SkillType;
+import com.titaniumtemplar.db.jooq.enums.StatType;
+import com.titaniumtemplar.discordbot.model.character.Skill;
 import com.titaniumtemplar.discordbot.model.combat.Attack;
 import com.titaniumtemplar.discordbot.model.combat.AttackType;
 import java.util.HashMap;
@@ -16,6 +19,8 @@ public class Monster {
 	private int currentHp;
 	private int maxHp;
 	private int xp;
+	private Map<SkillType, Skill> skills;
+	private Map<StatType, AtomicInteger> stats;
 
 	private final Map<AttackType, AtomicInteger> defenseCharge = new HashMap<>();
 	private final Map<AttackType, Boolean> shields = new HashMap<>();
@@ -23,9 +28,11 @@ public class Monster {
 	public static Monster fromTemplate(MonsterTemplate template) {
 		return Monster.builder()
 			.name(template.getName())
-			.currentHp(template.getMaxHp())
-			.maxHp(template.getMaxHp())
+			.maxHp(template.getHpMax())
+			.currentHp(template.getHpMax())
 			.xp(template.getXp())
+			.skills(template.getSkills())
+			.stats(template.getStats())
 			.build();
 	}
 

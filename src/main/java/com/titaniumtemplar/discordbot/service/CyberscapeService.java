@@ -70,16 +70,18 @@ public class CyberscapeService {
 			monsterCache = new EnumeratedDistribution<>(
 				repo.getMonsters()
 					.stream()
-					.map((monster) -> new Pair<>(monster, 1D / monster.getMaxHp()))
+					.peek((monster) -> monster.calcStats(getStatConfig()))
+					.map((monster) -> new Pair<>(monster, 1D / monster.getHpMax()))
 					.collect(toList()));
 		}
 		return monsterCache.sample();
 	}
 
-	public Set<String> awardXp(Collection<String> participantUids, int xp) {
+	public Set<String> awardXp(Collection<CharStats> participants, int xp) {
 		Set<String> levelups = new HashSet<>();
-		List<CharStats> adjustedParticipants = participantUids.stream()
-			.map(this::getCharacter)
+		List<CharStats> adjustedParticipants = participants.stream()
+			// Reset HP after combat
+			.peek((character) -> character.setHpCurrent(character.getHpMax()))
 			.filter(CharStats::canLevelUp)
 			.peek((character) -> character.setXp(character.getXp() + xp))
 			.peek((character) -> {

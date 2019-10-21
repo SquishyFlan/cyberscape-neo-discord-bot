@@ -82,7 +82,19 @@ CREATE TABLE monster (
   id UUID NOT NULL PRIMARY KEY,
   name VARCHAR NOT NULL,
   hp INT NOT NULL,
-  xp INT NOT NULL
+  xp INT NOT NULL,
+  level INT NOT NULL
+);
+
+CREATE TABLE monster_skill (
+  monster_id UUID NOT NULL,
+  skill skill_type NOT NULL,
+  ranks INT NOT NULL,
+  spec1_name VARCHAR NOT NULL,
+  spec1_ranks INT NOT NULL,
+  spec2_name VARCHAR NOT NULL,
+  spec2_ranks INT NOT NULL,
+  PRIMARY KEY (monster_id, skill)
 );
 
 CREATE TABLE guild_settings (
@@ -103,5 +115,8 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON stat_level_scale TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON stat_skill_scale TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON vital_scale TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON monster TO cyberscape;
+GRANT SELECT,INSERT,UPDATE,DELETE ON monster_skill TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON guild_settings TO cyberscape;
 GRANT SELECT,INSERT,UPDATE,DELETE ON guild_combat_channels TO cyberscape;
+
+ALTER TABLE monster ADD COLUMN level INT NOT NULL DEFAULT 0;
