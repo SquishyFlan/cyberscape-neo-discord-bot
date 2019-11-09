@@ -498,6 +498,8 @@ public class Myra extends ListenerAdapter {
 					.orElseGet(() -> service.getCharacter(memId).getName()))
 				.collect(joining("\n"));
 
+			resetCharHp(combat);
+
 			MessageEmbed embed = new EmbedBuilder()
 				.setTitle(monster.getName())
 				.setDescription("**DEFEATED**")
@@ -521,12 +523,15 @@ public class Myra extends ListenerAdapter {
 			Message prevMessage = combat.getMessage();
 			Monster monster = combat.getMonster();
 			combats.remove(prevMessage.getGuild().getId());
+			resetCharHp(combat);
+
 			MessageEmbed embed = new EmbedBuilder()
 				.setTitle(monster.getName())
 				.setDescription("**ESCAPED**")
 				.setColor(Color.YELLOW)
 				.setTimestamp(Instant.now())
 				.build();
+
 			prevMessage.getChannel()
 				.sendMessage(embed)
 				.queue((newMessage) ->
@@ -538,12 +543,18 @@ public class Myra extends ListenerAdapter {
 
 	public void cancelCombat(String guildId) {
 		var combat = combats.remove(guildId);
+		if (combat != null) {
+			resetCharHp(combat);
+
+			combatFutures.remove(guildId).cancel(false);
+			log.info("Canceled combat for guild {}", discord.getGuildById(guildId).getName());
+		}
+	}
+
+	private void resetCharHp(Combat combat) {
 		combat.getParticipants()
 			.values()
 			.forEach((character) -> character.setHpCurrent(character.getHpMax()));
-
-		combatFutures.remove(guildId).cancel(false);
-		log.info("Canceled combat for guild {}", discord.getGuildById(guildId).getName());
 	}
 
 	public void forceCombat(String guildId) {

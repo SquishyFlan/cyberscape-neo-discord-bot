@@ -80,8 +80,6 @@ public class CyberscapeService {
 	public Set<String> awardXp(Collection<CharStats> participants, int xp) {
 		Set<String> levelups = new HashSet<>();
 		List<CharStats> adjustedParticipants = participants.stream()
-			// Reset HP after combat
-			.peek((character) -> character.setHpCurrent(character.getHpMax()))
 			.filter(CharStats::canLevelUp)
 			.peek((character) -> character.setXp(character.getXp() + xp))
 			.peek((character) -> {
