@@ -1,10 +1,46 @@
 body {
   background-color: #ececec;
-  font-family: sans-serif;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 24px;
+}
+
+h1, h2, h3, p, ul, li {
+   margin: 0;
+   padding: 0;
+}
+
+h1 {
+   font-size: 2em;
+}
+
+h2 {
+   font-size: 1.6em;
+   padding: 8px 0;
+}
+
+h3 {
+   font-size: 1.3em;
+   padding: 8px 0;
 }
 
 #main {
-  font-size: 20px;
+  padding: 16px;
+  color: white;
+  background: url(../images/bg3.png) no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+#main .section_devider {
+   width: 80%;
+   margin-left: auto;
+   margin-right: auto;
+   border-bottom: 1px solid white;
 }
 
 .hidden {
@@ -13,11 +49,15 @@ body {
 
 #name {
   font-weight: bold;
-	font-size: 30px;
+  font-size: 1.5em;
+}
+
+#nameInputDiv #name {
+   width: 100%;
 }
 
 .avatarContainer {
-  width: 500px;
+  width: 100%;
 }
 
 .avatarContainer img {
@@ -25,20 +65,29 @@ body {
   max-width: 100%;
 }
 
-div.section {
-  border: 1px solid #ccc;
-  padding: 15px;
+div .section {
+  padding: 16px 24px;
 }
 
-span.statLabel {
-  display:inline-block;
-  width: 110px;
-  font-weight: bold;
-}
-
-div.stat {
+/* --- Character Stats --- */
+div .stat {
   padding-top: 5px;
 }
+
+div .stat p {
+   display: inline-block;
+   font-weight: 300;
+}
+
+span .statLabel {
+  display:inline-block;
+}
+
+div .statLabel p {
+   font-weight: 700;
+   width: 40%;
+}
+/* --- Character Stats close --- */
 
 .skillCluster {
   font-weight: bold;
@@ -46,32 +95,32 @@ div.stat {
   margin-top: 15px;
 }
 
-span.skillCost, span.specCost {
+span .skillCost, span .specCost {
   font-style: italic;
   color: #888;
   font-size: 14px;
   margin-left: 20px;
 }
 
-span.skillLabel {
+span .skillLabel {
   display: inline-block;
   width: 100px;
 }
 
-span.specLabel {
+span .specLabel {
 	display: inline-block;
 	width: 90px;
 	margin-left: 10px;
 	font-style: italic;
 }
 
-span.skillValue, span.specRanks {
+span .skillValue, span .specRanks {
 	display: inline-block;
 	width: 30px;
 	text-align: right;
 }
 
-input.specName {
+input .specName {
 	width: 120px;
 	margin-left: 10px;
 }
