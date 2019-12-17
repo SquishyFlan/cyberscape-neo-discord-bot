@@ -1,3 +1,12 @@
+@font-face {
+    font-family: 'CaviarDreams';
+    src: url('../fonts/CaviarDreams.woff') format('woff'),
+         url('../fonts/CaviarDreams.ttf') format('truetype'),
+         url('../fonts/CaviarDreams.svg#CaviarDreams') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
   background-color: #ececec;
   font-family: 'Roboto', sans-serif;
@@ -7,23 +16,33 @@ body {
   font-size: 24px;
 }
 
-h1, h2, h3, p, ul, li {
+h1, h2, h3, p, ul, li, input {
    margin: 0;
    padding: 0;
 }
 
 h1 {
+   font-family: 'CaviarDreams', Helvetica, sans-serif;
    font-size: 2em;
+   text-transform: uppercase;
 }
 
 h2 {
+   font-family: 'CaviarDreams', Helvetica, sans-serif;
    font-size: 1.6em;
    padding: 8px 0;
 }
 
 h3 {
+   font-family: 'CaviarDreams', Helvetica, sans-serif;
    font-size: 1.3em;
    padding: 8px 0;
+}
+
+input {
+   width: 30%;
+   font-size: 1em;
+   vertical-align: text-top;
 }
 
 #main {
@@ -36,8 +55,8 @@ h3 {
   background-size: cover;
 }
 
-#main .section_devider {
-   width: 80%;
+#main .section_divider {
+   width: 90%;
    margin-left: auto;
    margin-right: auto;
    border-bottom: 1px solid white;
@@ -65,28 +84,37 @@ h3 {
   max-width: 100%;
 }
 
-div .section {
+div.section {
   padding: 16px 24px;
 }
 
-/* --- Character Stats --- */
-div .stat {
-  padding-top: 5px;
+
+/* --- Top --- */
+
+#uidInputDiv h3 {
+   display: inline-block;
 }
 
-div .stat p {
+#uidInput {
+   margin-top: -4px;
+}
+
+
+/* --- Character Stats --- */
+div.stat {
+   width: 100%;
+   padding-top: 5px;
    display: inline-block;
    font-weight: 300;
 }
 
-span .statLabel {
-  display:inline-block;
-}
-
-div .statLabel p {
+span.statLabel {
+   display:inline-block;
    font-weight: 700;
    width: 40%;
 }
+
+
 /* --- Character Stats close --- */
 
 .skillCluster {
@@ -95,32 +123,39 @@ div .statLabel p {
   margin-top: 15px;
 }
 
-span .skillCost, span .specCost {
+span.skillCost, span.specCost {
   font-style: italic;
   color: #888;
   font-size: 14px;
   margin-left: 20px;
 }
 
-span .skillLabel {
+span.skillLabel {
   display: inline-block;
   width: 100px;
 }
 
-span .specLabel {
+span.specLabel {
 	display: inline-block;
 	width: 90px;
 	margin-left: 10px;
 	font-style: italic;
 }
 
-span .skillValue, span .specRanks {
+span.skillValue, span.specRanks {
 	display: inline-block;
 	width: 30px;
 	text-align: right;
 }
 
-input .specName {
+input.specName {
 	width: 120px;
 	margin-left: 10px;
+}
+
+
+/* --- Character Stats close --- */
+
+#skillElemental h2 {
+   color: red;
 }
