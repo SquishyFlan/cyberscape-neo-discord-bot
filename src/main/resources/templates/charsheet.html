@@ -86,7 +86,7 @@
         <div class="skill" th:each="skill : ${T(com.titaniumtemplar.db.jooq.enums.SkillType).values()}" th:id="${skill.literal}">
           <span th:if="${skillStat.index % 3 == 0}" class="skillCluster" id="skillElemental"><h2 th:text="${clusters[skillStat.index / 3]}">Elemental</h2></span>
           <div class="skillBlock">
-            <span class="skillLabel" th:id="|${skill.literal}Label|"><h3 th:text="${#strings.capitalize(skill.literal)}">Fire</h3></span>
+            <span class="skillLabel" th:id="|${skill.literal}Label|"><h3 class="fire_element" th:text="${#strings.capitalize(skill.literal)}"></h3></span>
             <span class="skillValue" th:id="|${skill.literal}Value|" th:text="${character.skills.get(skill).ranks}">16</span>
             <input type="button" value="-" class="dec hidden"
                    th:data-skill-type="${skill.literal}"
