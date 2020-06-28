@@ -1,10 +1,64 @@
+@font-face {
+    font-family: 'CaviarDreams';
+    src: url('../fonts/CaviarDreams.woff') format('woff'),
+         url('../fonts/CaviarDreams.ttf') format('truetype'),
+         url('../fonts/CaviarDreams.svg#CaviarDreams') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body {
   background-color: #ececec;
-  font-family: sans-serif;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 24px;
+}
+
+h1, h2, h3, p, ul, li, input {
+   margin: 0;
+   padding: 0;
+}
+
+h1 {
+   font-family: 'CaviarDreams', Helvetica, sans-serif;
+   font-size: 2em;
+   text-transform: uppercase;
+}
+
+h2 {
+   font-family: 'CaviarDreams', Helvetica, sans-serif;
+   font-size: 1.6em;
+   padding: 8px 0;
+}
+
+h3 {
+   font-family: 'CaviarDreams', Helvetica, sans-serif;
+   font-size: 1.3em;
+   padding: 8px 0;
+}
+
+input {
+   font-size: 1em;
+   vertical-align: text-top;
 }
 
 #main {
-  font-size: 20px;
+  padding: 16px;
+  color: white;
+  background: url(../images/bg3.png) no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+#main .section_divider {
+   width: 90%;
+   margin-left: auto;
+   margin-right: auto;
+   border-bottom: 1px solid white;
 }
 
 .hidden {
@@ -13,11 +67,16 @@ body {
 
 #name {
   font-weight: bold;
-	font-size: 30px;
+  font-size: 1.5em;
+}
+
+#nameInputDiv #name {
+   width: auto;
+   max-width: 100%;
 }
 
 .avatarContainer {
-  width: 500px;
+  width: 100%;
 }
 
 .avatarContainer img {
@@ -26,24 +85,75 @@ body {
 }
 
 div.section {
-  border: 1px solid #ccc;
-  padding: 15px;
+  padding: 16px 24px;
+}
+
+input[type=button] {
+   font-family: 'Roboto', sans-serif;
+   background: #051920;
+   color: #0cffc9;
+   width: auto;
+   padding: 4px 20px;
+   margin-bottom: 12px;
+   border: 1px solid #0cffc9;
+}
+
+input[type=text] {
+   font-family: 'Roboto', sans-serif;
+   background: #051920;
+   color: #0cffc9;
+   width: auto;
+   padding: 4px 8px;
+   margin-bottom: 12px;
+   border: 1px solid #0cffc9;
+}
+
+
+/* --- Top --- */
+
+#uidInputDiv h3 {
+   display: inline-block;
+}
+
+#uidInput {
+   margin-top: -4px;
+}
+
+
+/* --- Character Stats --- */
+div.stat {
+   width: 100%;
+   padding-top: 5px;
+   display: inline-block;
+   font-weight: 300;
 }
 
 span.statLabel {
-  display:inline-block;
-  width: 110px;
-  font-weight: bold;
+   display:inline-block;
+   font-weight: 700;
+   width: 40%;
 }
 
-div.stat {
-  padding-top: 5px;
-}
+
+/* --- Character Stats close --- */
 
 .skillCluster {
   font-weight: bold;
-  display: inline-block;
-  margin-top: 15px;
+  padding-top: 15px;
+}
+
+.skillBlock {
+   position: relative;
+}
+
+#skillElemental h2 {
+   display: block;
+   width: auto;
+   color: white;
+   background-color: rgba(0,0,0,0.5);
+   padding: 20px;
+   text-transform: uppercase;
+   font-size: 2em;
 }
 
 span.skillCost, span.specCost {
@@ -55,7 +165,15 @@ span.skillCost, span.specCost {
 
 span.skillLabel {
   display: inline-block;
-  width: 100px;
+}
+
+span.skillLabel h3 {
+   width: 300px;
+   height: 93px;
+}
+
+span.skillLabel h3.fire_element {
+   background: url(../images/fire_element.png) no-repeat center center;
 }
 
 span.specLabel {
@@ -65,7 +183,13 @@ span.specLabel {
 	font-style: italic;
 }
 
-span.skillValue, span.specRanks {
+span.skillValue {
+   position: absolute;
+   top: 60px;
+   left: 237px;
+}
+
+span.specRanks {
 	display: inline-block;
 	width: 30px;
 	text-align: right;

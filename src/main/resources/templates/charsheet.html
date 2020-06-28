@@ -15,21 +15,23 @@
 			admin = [[${admin}]];
 			urlPrefix = [[${urlPrefix}]];
     </script>
-    <link rel="stylesheet" href="/css/charsheet.css"
-          th:href="@{/css/charsheet.css}" media="screen" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/charsheet.css"
+          th:href="@{charsheet.css}" media="screen" />
   </head>
+
   <body>
     <div id="main">
       <div class="section" id="top">
         <div id="nameDiv">
-          <span id="name" th:text="${character.name}" th:if="${!admin}">Shoe</span>
+          <span id="name" th:if="${!admin}"><h1 th:text="${character.name}">Shoe</h1></span>
         </div>
         <div id="uidInputDiv" th:if="${admin}">
-          <label class="uidInputLabel" for="uidInput">User ID:</label>
+          <label class="uidInputLabel" for="uidInput"><h3>User ID:</h3></label>
           <input id="uidInput" />
         </div>
         <div id="nameInputDiv" th:if="${admin}">
-          <label class="nameInputLabel" for="name">Name:</label>
+          <label class="nameInputLabel" for="name"><h3>Name:</h3></label>
           <input id="name" th:value="${character.name}"/>
         </div>
         <div th:if="${character.avatarUrl != ''}" id="avatarDiv" class="avatarContainer">
@@ -38,6 +40,8 @@
           </a>
         </div>
       </div>
+
+      <div class="section_divider"></div>
 
       <div class="section" id="mid">
         <div class="stat" id="level">
@@ -49,22 +53,15 @@
           <span id="expLabel" class="statLabel">XP</span>
           <span id="expValue" class="statValue" th:text="${character.xp == -1}? 'MAX' : ${character.xp}">0</span>
           <span class="slash" th:if="${character.xp > -1}">/</span>
-          <span id="expNextValue" th:if="${character.xp > -1}" th:text="${character.xpNext}"></span>
+          <span id="expNextValue" th:if="${character.xp > -1}" th:text="${character.xpNext}">0</span>
         </div>
         <div class="stat" id="vitals">
           <div id="hp">
             <span id="hpLabel" class="statLabel">HP</span>
-            <span id="hpCurrent" class="statValue" th:text="${character.hpCurrent}"></span>
+            <span id="hpCurrent" class="statValue" th:text="${character.hpCurrent}">0</span>
             <span class="slash">/</span>
-            <span id="hpMax" th:text="${character.hpMax}"></span>
+            <span id="hpMax" th:text="${character.hpMax}">0</span>
             <div id="hpBar"></div>
-          </div>
-          <div class="stat" id="mp">
-            <span id="mpLabel" class="statLabel">MP</span>
-            <span id="mpCurrent" class="statValue" th:text="${character.mpCurrent}"></span>
-            <span class="slash">/</span>
-            <span id="mpMax" th:text="${character.mpMax}"></span>
-            <div id="mpBar"></div>
           </div>
           <div class="stat" id="sp">
             <span id="spLabel" class="statLabel">SP Spent</span>
@@ -78,18 +75,19 @@
             <span class="statValue" th:id="|${stat.literal}Value|" th:text="${character.stats.get(stat).get()}">10</span>
           </div>
         </div>
-
       </div>
+
+      <div class="section_divider"></div>
 
       <div class="section" id="skills" th:with="clusters = ${ {'Elemental', 'Natural', 'Physical', 'Mystical'} }">
         <input type="button" value="Save" id="save" class="hidden" />
         <input type="button" value="Reset" id="reset" class="hidden" />
 
         <div class="skill" th:each="skill : ${T(com.titaniumtemplar.db.jooq.enums.SkillType).values()}" th:id="${skill.literal}">
-          <span th:if="${skillStat.index % 3 == 0}" class="skillCluster" th:text="${clusters[skillStat.index / 3]}">Elemental</span>
+          <span th:if="${skillStat.index % 3 == 0}" class="skillCluster" id="skillElemental"><h2 th:text="${clusters[skillStat.index / 3]}"></h2></span>
           <div class="skillBlock">
-            <span class="skillLabel" th:id="|${skill.literal}Label|" th:text="${#strings.capitalize(skill.literal)}">Fire</span>
-            <span class="skillValue" th:id="|${skill.literal}Value|" th:text="${character.skills.get(skill).ranks}">16</span>
+            <span class="skillLabel" th:id="|${skill.literal}Label|"><h3 th:text="${#strings.capitalize(skill.literal)}"></h3></span>
+            <span class="skillValue" th:id="|${skill.literal}Value|" th:text="${character.skills.get(skill).ranks}"></span>
             <input type="button" value="-" class="dec hidden"
                    th:data-skill-type="${skill.literal}"
                    data-skill-field="ranks" th:id="|${skill.literal}Decrement|" />
