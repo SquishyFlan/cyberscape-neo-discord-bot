@@ -40,7 +40,6 @@ h3 {
 }
 
 input {
-   width: 30%;
    font-size: 1em;
    vertical-align: text-top;
 }
@@ -72,7 +71,8 @@ input {
 }
 
 #nameInputDiv #name {
-   width: 100%;
+   width: auto;
+   max-width: 100%;
 }
 
 .avatarContainer {
@@ -86,6 +86,26 @@ input {
 
 div.section {
   padding: 16px 24px;
+}
+
+input[type=button] {
+   font-family: 'Roboto', sans-serif;
+   background: #051920;
+   color: #0cffc9;
+   width: auto;
+   padding: 4px 20px;
+   margin-bottom: 12px;
+   border: 1px solid #0cffc9;
+}
+
+input[type=text] {
+   font-family: 'Roboto', sans-serif;
+   background: #051920;
+   color: #0cffc9;
+   width: auto;
+   padding: 4px 8px;
+   margin-bottom: 12px;
+   border: 1px solid #0cffc9;
 }
 
 
