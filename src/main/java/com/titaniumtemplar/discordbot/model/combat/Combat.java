@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.Random;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 
 @Data
 @NoArgsConstructor

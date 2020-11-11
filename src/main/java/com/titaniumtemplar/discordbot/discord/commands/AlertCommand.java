@@ -8,11 +8,11 @@ import com.titaniumtemplar.discordbot.discord.Myra;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 
 @RequiredArgsConstructor(staticName = "withArgs")
 public class AlertCommand implements DiscordCommand {
@@ -53,16 +53,14 @@ public class AlertCommand implements DiscordCommand {
 					sendDm(author, "You will no longer be alerted for new combat.");
 
 					guild
-						.getController()
-						.removeSingleRoleFromMember(member, grindingRole)
+						.removeRoleFromMember(member, grindingRole)
 						.queue();
 
 					return;
 				}
 
 				guild
-					.getController()
-					.addSingleRoleToMember(member, grindingRole)
+					.addRoleToMember(member, grindingRole)
 					.queue();
 				myra.scheduleGrinding(member, numHours);
 

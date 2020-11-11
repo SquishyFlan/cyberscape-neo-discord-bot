@@ -1,10 +1,10 @@
 package com.titaniumtemplar.discordbot.discord;
 
-import static net.dv8tion.jda.core.entities.ChannelType.TEXT;
+import static net.dv8tion.jda.api.entities.ChannelType.TEXT;
 
 import lombok.experimental.UtilityClass;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 
 @UtilityClass
 public class DiscordUtils {

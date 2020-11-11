@@ -14,10 +14,10 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static net.dv8tion.jda.core.Permission.ADMINISTRATOR;
-import static net.dv8tion.jda.core.Permission.MESSAGE_READ;
-import static net.dv8tion.jda.core.Permission.MESSAGE_WRITE;
-import static net.dv8tion.jda.core.entities.ChannelType.TEXT;
+import static net.dv8tion.jda.api.Permission.ADMINISTRATOR;
+import static net.dv8tion.jda.api.Permission.MESSAGE_READ;
+import static net.dv8tion.jda.api.Permission.MESSAGE_WRITE;
+import static net.dv8tion.jda.api.entities.ChannelType.TEXT;
 
 import com.titaniumtemplar.discordbot.discord.commands.AlertCommand;
 import com.titaniumtemplar.discordbot.discord.commands.AttackCommand;
@@ -57,26 +57,26 @@ import javax.annotation.PreDestroy;
 import javax.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageEmbed;
-import net.dv8tion.jda.core.entities.MessageReaction.ReactionEmote;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.ReadyEvent;
-import net.dv8tion.jda.core.events.guild.GuildJoinEvent;
-import net.dv8tion.jda.core.events.guild.GuildLeaveEvent;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.events.message.guild.GuildMessageReceivedEvent;
-import net.dv8tion.jda.core.events.message.guild.react.GenericGuildMessageReactionEvent;
-import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent;
-import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionRemoveEvent;
-import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.MessageReaction.ReactionEmote;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.ReadyEvent;
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
+import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GenericGuildMessageReactionEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionRemoveEvent;
+import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
@@ -154,7 +154,7 @@ public class Myra extends ListenerAdapter {
 					.stream()
 					.peek((member) -> log.info("Removing stale Grinding role from " + member.getEffectiveName()))
 					.forEach((member) ->
-						guild.getController().removeSingleRoleFromMember(member, grindingRole).queue()));
+						guild.removeRoleFromMember(member, grindingRole).queue()));
 	}
 
 	private List<TextChannel> getEligibleChannels(Guild guild) {
@@ -203,10 +203,10 @@ public class Myra extends ListenerAdapter {
 
 		Guild guild = event.getGuild();
 
-		guild.getController()
-			.addRolesToMember(
-				member, guild.getRolesByName("In Character Select", false))
-			.queue();
+		guild.getRolesByName("In Character Select", true)
+			.stream()
+			.findAny()
+			.ifPresent((role) -> guild.addRoleToMember(member, role).queue());
 	}
 
 	@Override
@@ -601,13 +601,24 @@ public class Myra extends ListenerAdapter {
 	}
 
 	public User getUser(String uid) {
-		return discord.getUserById(uid);
+		return discord.retrieveUserById(uid).complete();
 	}
 
 	public Map<String, Guild> getAdminGuilds(User user) {
-		return user.getMutualGuilds()
+		return discord.getGuildCache()
 			.stream()
-			.filter((guild) -> isAdmin(guild.getMember(user)))
+			.filter((guild) ->
+			{
+				try
+				{
+					Member member = guild.retrieveMember(user, false).complete();
+					return isAdmin(member);
+				}
+				catch (RuntimeException ex)
+				{
+					return false;
+				}
+			})
 			.collect(toMap(Guild::getId, identity()));
 	}
 
@@ -630,8 +641,7 @@ public class Myra extends ListenerAdapter {
 			.stream()
 			.filter((role) -> role.getName().equalsIgnoreCase("Grinding For XP"))
 			.forEach((role) -> member.getGuild()
-			.getController()
-			.removeSingleRoleFromMember(member, role)
+			.removeRoleFromMember(member, role)
 			.queue()),
 			(int) Duration.ofHours(numHours).toSeconds());
 	}

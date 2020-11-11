@@ -8,9 +8,9 @@ import com.titaniumtemplar.discordbot.model.exception.NoSuchCharacterException;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 
 @RequiredArgsConstructor(staticName = "withArgs")
 public class ProfileCommand implements DiscordCommand {
