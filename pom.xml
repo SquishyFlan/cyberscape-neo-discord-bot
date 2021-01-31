@@ -4,7 +4,7 @@
 
 	<groupId>com.titaniumtemplar</groupId>
 	<artifactId>cyberscape-neo-discord-bot</artifactId>
-	<version>0.1.10</version>
+	<version>0.1.11</version>
 	<packaging>jar</packaging>
 
 	<name>Cyberscape Neo: The Discord Bot</name>
@@ -37,10 +37,10 @@
 		<commons-math3.version>3.6.1</commons-math3.version>
 		<jasypt.version>2.1.0</jasypt.version>
 		<javax.inject.version>1</javax.inject.version>
-		<jda.version>3.8.1_448</jda.version>
+		<jda.version>4.2.0_214</jda.version>
 		<jool.version>0.9.14</jool.version>
 		<jquery.version>3.3.1</jquery.version>
-		<lombok.version>1.18.4</lombok.version>
+		<lombok.version>1.18.16</lombok.version>
 		<postgresql.version>42.2.5</postgresql.version>
 	</properties>
 

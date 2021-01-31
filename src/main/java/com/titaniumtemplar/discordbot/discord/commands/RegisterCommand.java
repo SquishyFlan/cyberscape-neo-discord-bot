@@ -8,10 +8,10 @@ import com.titaniumtemplar.discordbot.model.exception.NoSuchCharacterException;
 import com.titaniumtemplar.discordbot.service.CyberscapeService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.User;
 
 /*
 	Class: RegisterCommand
@@ -56,7 +56,6 @@ public class RegisterCommand implements DiscordCommand {
 
 			Guild guild = member.getGuild();
 			guild
-				.getController()
 				.modifyMemberRoles(
 					member,
 					guild.getRolesByName("In Character Select", false),
