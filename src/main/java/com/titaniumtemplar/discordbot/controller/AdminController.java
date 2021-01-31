@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Slf4j
 @Controller
 @RequestMapping("admin")
+/*
+	Class: AdminController
+	Description: Establishes a baseline for admin acccess
+*/
 public class AdminController {
 
 	@Inject
@@ -31,6 +35,12 @@ public class AdminController {
 	@Inject
 	ServletContext servletContext;
 
+	/*
+		Method: admin
+		Description: Admin Constructor
+		Input: Authentication object, model pertaining to user type
+		Output: String containing success message
+	*/
 	@GetMapping("")
 	String admin(Authentication auth, Model model) {
 		OAuth2User principal = (OAuth2User) auth.getPrincipal();
@@ -49,6 +59,12 @@ public class AdminController {
 		return "admin";
 	}
 
+	/*
+		Method: adminCharSheet
+		Description: Builds the character sheet for the current Admin
+		Input: Authentication object, model pertaining to user type
+		Output: String containing success message
+	*/
 	@GetMapping("character")
 	String adminCharsheet(Authentication auth, Model model) {
 		OAuth2User principal = (OAuth2User) auth.getPrincipal();

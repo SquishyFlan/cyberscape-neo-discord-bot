@@ -5,9 +5,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
+/*
+	Class: SecurityConfig
+	Description: Utility functions for Discord operations
+*/
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+	/*
+		Method: configure
+		Description: Establishes Security Configuration
+		Input: HttpSecurity Object
+	*/
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http

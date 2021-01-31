@@ -25,7 +25,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.util.Pair;
 import org.springframework.stereotype.Service;
-
+/*
+	Class: CyberscapeService
+	Description: Utility functions for Discord operations
+*/
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class CyberscapeService {
@@ -38,6 +41,12 @@ public class CyberscapeService {
 	private Map<String, GuildSettings> guildSettingsCache = new ConcurrentHashMap<>();
 	private EnumeratedDistribution<MonsterTemplate> monsterCache;
 
+	/*
+		Method: getStatConfig
+		Description: Returns StatConfig of Cyberscape Repository
+		Input: User Object, String Message
+		Output: StatConfig object
+	*/
 	public StatConfig getStatConfig() {
 		if (statConfig == null) {
 			statConfig = repo.getStatConfig();
@@ -45,6 +54,12 @@ public class CyberscapeService {
 		return statConfig;
 	}
 
+	/*
+		Method: getCharacter
+		Description: Returns Character Object based on provided User ID
+		Input: String userId
+		Output: Character object
+	*/
 	public CharStats getCharacter(String userId) {
 		CharStats character = characterCache.computeIfAbsent(
 			userId,
@@ -53,18 +68,35 @@ public class CyberscapeService {
 		return character;
 	}
 
+	/*
+		Method: createCharacter
+		Description: Creates a new character
+		Input: User ID, User Name
+		Output: Character object
+	*/
 	public CharStats createCharacter(String userId, String username) {
 		CharStats character = calcStats(repo.createCharacter(userId, username));
 		characterCache.put(userId, character);
 		return character;
 	}
 
+	/*
+		Method: calcStats
+		Description: Provide a CharStats for a character, calculate the new stats for the character
+		Input: CharStats for a character
+		Output: updated CharStats object
+	*/
 	private CharStats calcStats(CharStats character) {
 		StatConfig statConfig = getStatConfig();
 		character.calcStats(statConfig);
 		return character;
 	}
 
+	/*
+		Method: getRandomMonster
+		Description: returns a random monster
+		Output: MonsterTemplate
+	*/
 	public MonsterTemplate getRandomMonster() {
 		if (monsterCache == null) {
 			monsterCache = new EnumeratedDistribution<>(
@@ -77,6 +109,12 @@ public class CyberscapeService {
 		return monsterCache.sample();
 	}
 
+	/*
+		Method: awardXP
+		Description: Given a collection of characters, award experience and return who leveled up
+		Input: Collection of Characters, Int of expereince awarded
+		Output: Set of Strings with leveled up characters
+	*/
 	public Set<String> awardXp(Collection<CharStats> participants, int xp) {
 		Set<String> levelups = new HashSet<>();
 		List<CharStats> adjustedParticipants = participants.stream()
@@ -94,10 +132,21 @@ public class CyberscapeService {
 		return levelups;
 	}
 
+	/*
+		Method: getGuildSettings
+		Description: Returns settings for provided guild
+		Input: Guild ID
+		Output: Guild Settings
+	*/
 	public GuildSettings getGuildSettings(String gid) {
 		return guildSettingsCache.computeIfAbsent(gid, repo::getGuildSettings);
 	}
 
+	/*
+		Method: addCombatChannel
+		Description: Adds or removes a channel to or from a guild
+		Input: Guild ID, Channel ID, Boolean where True is add
+	*/
 	public void addCombatChannel(String gid, String channelId, boolean add) {
 		GuildSettings settings = getGuildSettings(gid);
 		Set<String> combatChannels = new HashSet<>(settings.getCombatChannels());
@@ -110,6 +159,11 @@ public class CyberscapeService {
 		settings.setCombatChannels(combatChannels);
 	}
 
+	/*
+		Method: updateCharSkills
+		Description: Updates a character's skills
+		Input: User ID, Updated Character skills, Flag if an admin set this
+	*/
 	public void updateCharSkills(String userId, CharSkillsUpdate charStats, boolean admin) {
 
 		CharStats foundStats;
@@ -155,6 +209,12 @@ public class CyberscapeService {
 		repo.updateCharacters(singleton(newStats));
 	}
 
+	/*
+		Method: checkStats
+		Description: Check the stats update for a character
+		Input: User ID, Updated Character Stats, Flag for if an admin set this
+		Output: new Character Stats
+	*/
 	public CharStats checkStats(String userId, CharSkillsUpdate charStats, boolean admin) {
 		CharStats foundStats;
 		try {

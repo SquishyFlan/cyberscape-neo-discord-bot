@@ -3,6 +3,10 @@ package com.titaniumtemplar.discordbot.model.combat;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/*
+	enum: AttackType
+	Description: Lists various types of attacks and their combat action string
+*/
 @Getter
 @RequiredArgsConstructor
 public enum AttackType {

@@ -1,5 +1,9 @@
 package com.titaniumtemplar.discordbot.model.combat;
 
+/*
+	Enum: Specialization
+	Description: Contains the attack specializations
+*/
 public enum Specialization {
   IMMOLATE,
   BURST,

@@ -14,11 +14,20 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.Role;
 import net.dv8tion.jda.core.entities.User;
 
+/*
+	Class: AlertCommand
+	Description: Handles Alert Commands for a user
+*/
 @RequiredArgsConstructor(staticName = "withArgs")
 public class AlertCommand implements DiscordCommand {
 
 	private final List<String> splitCommand;
 
+	/*
+		Method: run
+		Description: Assigns a user to start receiving combat
+		Input: CyberscapeService object, Myra object, Message object, User object, Member object
+	*/
 	@Override
 	public void run(
 		CyberscapeService service,

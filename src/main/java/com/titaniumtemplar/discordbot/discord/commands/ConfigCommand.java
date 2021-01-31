@@ -14,12 +14,21 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 
+/*
+	Class: ConfigCommand
+	Description: Command class that handles configs
+*/
 @Slf4j
 @RequiredArgsConstructor(staticName = "withArgs")
 public class ConfigCommand implements DiscordCommand {
 
 	private final List<String> splitCommand;
 
+	/*
+		Method: run
+		Description: Handles Commands relating to combat
+		Input: CyberscapeService object, Myra object, Message object, User object, Member object
+	*/
 	@Override
 	public void run(
 		CyberscapeService service,

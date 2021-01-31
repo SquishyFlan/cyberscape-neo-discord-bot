@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+/*
+	Class: RootController
+	Description: Controls the game and establishes a baseline of functionality for normal users.	
+*/
 @Slf4j
 @Controller
 @RequestMapping("/")
@@ -34,11 +38,22 @@ public class RootController {
 	@Inject
 	ServletContext servletContext;
 
+	/*
+		Method: index
+		Description: Returns the root level
+		Output: String containing index location
+	*/
 	@GetMapping("")
 	String index() {
 		return "redirect:/profile/";
 	}
 
+	/*
+		Method: profile
+		Description: Profile constructor
+		Input: Authentication object, model pertaining to user type
+		Output: String containing success message
+	*/
 	@GetMapping("profile")
 	String profile(Authentication auth, Model model) throws Exception {
 		OAuth2User principal = (OAuth2User) auth.getPrincipal();
@@ -62,6 +77,12 @@ public class RootController {
 		return "charsheet";
 	}
 
+	/*
+		Method: profile
+		Description: Profile Constructor
+		Input: UID string, model pertaining to user type
+		Output: String containing success message
+	*/
 	@GetMapping("profile/{uid}")
 	String profile(@PathVariable String uid, Model model) {
 		CharStats character = service.getCharacter(uid);

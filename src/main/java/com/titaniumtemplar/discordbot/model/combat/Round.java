@@ -12,6 +12,10 @@ import com.titaniumtemplar.discordbot.model.character.CharStats;
 import java.util.HashMap;
 import java.util.stream.Stream;
 
+/*
+	Class: Round
+	Description: Object of current round in combat
+*/
 @Getter
 @RequiredArgsConstructor
 public class Round {
@@ -20,6 +24,12 @@ public class Round {
 	private final Map<String, Attack> attacks = new LinkedHashMap<>();
 	private final Map<String, CharStats> participants = new HashMap<>();
 
+	/*
+		Method: resolve
+		Description: Handles monster and monster attack
+		Input: Monster object, MonsterAttack object
+		Output: String that has the text output for the entire round
+	*/
 	String resolve(Monster monster, MonsterAttack attack) {
 
 		Stream<String> combatLines = attacks.values()
@@ -46,6 +56,11 @@ public class Round {
 		return roundString;
 	}
 
+	/*
+		Method: addAttack
+		Description: Adds another attack for specified character
+		Input: CharStats object, Attack object
+	*/
 	void addAttack(CharStats character, Attack attack) {
 		var participantId = character.getUserId();
 		if (attacks.containsKey(participantId)) {
@@ -55,11 +70,21 @@ public class Round {
 		participants.put(participantId, character);
 	}
 
+	/*
+		Method: removeAttack
+		Description: Removes attack from specified user
+		Input: String with user's id
+	*/
 	void removeAttack(String participantId) {
 		attacks.remove(participantId);
 		participants.remove(participantId);
 	}
 
+	/*
+		Method: isEmpty
+		Description: Determines if there are any attacks in the queue
+		Input: boolean
+	*/
 	public boolean isEmpty() {
 		return attacks.isEmpty();
 	}

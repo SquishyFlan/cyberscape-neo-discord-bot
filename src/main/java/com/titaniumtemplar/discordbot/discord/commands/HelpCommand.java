@@ -12,6 +12,10 @@ import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 
+/*
+	Class: HelpCommand
+	Description: Command that Helps users
+*/
 @RequiredArgsConstructor(staticName = "withArgs")
 public class HelpCommand implements DiscordCommand {
 
@@ -28,6 +32,11 @@ public class HelpCommand implements DiscordCommand {
 	      "Feel free to contact our support representatives on Discord if you have any further questions, and thank you for playing Cyberscape Neo!")
 	      .collect(joining("\n"));
 
+	/*
+		Method: run
+		Description: Function that executes when Help Command is ran
+		Input: CyberscapeService object, Myra objcet, Message object, User object, Member objcet
+	*/
   @Override
   public void run(CyberscapeService service, Myra myra, Message message, User author, Member member) {
     author.openPrivateChannel()

@@ -5,6 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
+/*
+	Class: GuildSettings
+	Description: Parent class for Guilds
+*/
 @Data
 @Builder
 public class GuildSettings {

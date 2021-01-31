@@ -17,6 +17,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.Singular;
 
+/*
+	Class: MonsterTemplate
+	Description: Base class for monsters
+*/
 @Data
 @Builder
 public class MonsterTemplate {
@@ -39,6 +43,11 @@ public class MonsterTemplate {
 	private int spUsed;
 	private int spLeft;
 
+	/*
+		Method: calcStats
+		Description: Calculates stats of a monster based on provided config file
+		Input: StatConfig object
+	*/
 	public void calcStats(StatConfig config) {
 
 		spTotal = 0;
@@ -156,6 +165,11 @@ public class MonsterTemplate {
 //			+ stats.get(wis).get() * config.getMpPerWis();
 	}
 
+	/*
+		Method: putSkill
+		Description: Gives skill with specified values to monster
+		Input: SkillType Object, Skill object
+	*/
 	public void putSkill(SkillType skill, Skill values) {
 		skills.put(skill, values);
 	}

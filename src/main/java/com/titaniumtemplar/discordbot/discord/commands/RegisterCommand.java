@@ -13,11 +13,20 @@ import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 
+/*
+	Class: RegisterCommand
+	Description: Class that handles registering a user
+*/
 @RequiredArgsConstructor(staticName = "withArgs")
 public class RegisterCommand implements DiscordCommand {
 
 	private final List<String> splitCommand;
 
+	/*
+		Method: run
+		Description: gets users registered
+		Input: CyberscapeService object, Myra object, Message object, User object, Member object
+	*/
 	@Override
 	public void run(
 		CyberscapeService service,

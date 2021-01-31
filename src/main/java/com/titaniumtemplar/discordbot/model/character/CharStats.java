@@ -25,6 +25,10 @@ import java.util.stream.IntStream;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+/*
+	Class: CharStats
+	Description: Lists stats for current item (monster, user, etc.)
+*/
 @Slf4j
 @Data
 public class CharStats {
@@ -64,6 +68,11 @@ public class CharStats {
 	// Set from Discord/Auth
 	private String name;
 
+	/*
+		Method: clone
+		Description: Duplicates this object at its current stats
+		Output: CharStats object duplicate
+	*/
 	public CharStats clone() {
 		CharStats cs = new CharStats();
 		cs.setId(id);
@@ -86,6 +95,11 @@ public class CharStats {
 		return cs;
 	}
 
+	/*
+		Method: calcStats
+		Description: Evaluates current stats against supplied config
+		Input: StatConfig object
+	*/
 	public void calcStats(StatConfig config) {
 		while (level < MAX_LEVEL && xp > NEXT_LEVELS.get(level)) {
 			xp -= NEXT_LEVELS.get(level);
@@ -221,6 +235,11 @@ public class CharStats {
 		}
 	}
 
+	/*
+		Method: putSkill
+		Description: Adds submitted skill to skill set
+		Input: SkillType object, Skill object
+	*/
 	public void putSkill(SkillType skill, Skill values) {
 		skills.put(skill, values);
 		if (values.getSpec1Name() != null) {
@@ -231,6 +250,11 @@ public class CharStats {
 		}
 	}
 
+	/*
+		Method: levelUp
+		Description: Determines if level up occurred
+		Output: Boolean if level up occurred
+	*/
 	public boolean levelUp() {
 		if (xp < xpNext) {
 			return false;
@@ -238,18 +262,38 @@ public class CharStats {
 		return true;
 	}
 
+	/*
+		Method: maxLevel
+		Description: Determine if user is at maxLevel
+		Input: Boolean
+	*/
 	public boolean maxLevel() {
 		return level == MAX_LEVEL;
 	}
 
+	/*
+		Method: canLevelUp
+		Description: Determines if user can level up (can't if at max level)
+		Output: Boolean
+	*/
 	public boolean canLevelUp() {
 		return !maxLevel();
 	}
 
+	/*
+		Method: isDead
+		Description: Determines if user is dead (At/below 0 HP)
+		Output: Boolean
+	*/
 	public boolean isDead() {
 		return hpCurrent <= 0;
 	}
 
+	/*
+		Method: appplyAttack
+		Description: Applies the monster attack to this player
+		Input: MonsterAttack object
+	*/
 	public void applyAttack(MonsterAttack attack) {
 		hpCurrent -= Math.max(attack.getDamage(), 0);
 	}

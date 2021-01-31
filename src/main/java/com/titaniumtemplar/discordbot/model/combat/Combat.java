@@ -19,6 +19,10 @@ import lombok.NoArgsConstructor;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Message;
 
+/*
+	Class: Combat
+	Description: Handles the current combat sessions
+*/
 @Data
 @NoArgsConstructor
 public class Combat {
@@ -35,6 +39,10 @@ public class Combat {
 
 	private final Map<String, CharStats> participants = new HashMap<>();
 
+	/*
+		Method: resolveRound
+		Description: Saves current round as previous, then starts the next round
+	*/
 	public void resolveRound() {
 		previousRound = currentRound;
     participants.putAll(previousRound.getParticipants());
@@ -47,6 +55,11 @@ public class Combat {
 		}
 	}
 
+	/*
+		Method: addAttack
+		Description: Takes attack chosen and adds to list of attacks for current round
+		Input: CharStats object, AttackType object, Specialization object
+	*/
 	public void addAttack(
 		CharStats character,
 		AttackType type,
@@ -62,10 +75,21 @@ public class Combat {
 		currentRound.addAttack(character, attack);
 	}
 
+
+	/*
+		Method: removeAttack
+		Description: Removes chosen attack from list of attacks for current round
+		Input: String object with id of user that performed attack being removed
+	*/
 	public void removeAttack(String userId) {
 		currentRound.removeAttack(userId);
 	}
 
+	/*
+		Method: calculateDamage
+		Description: Determine how much damage an attack has based on the character dealing the damage, then deals damage to monster
+		Input: CharStats object, Attack object
+	*/
 	private void calculateDamage(CharStats character, Attack attack) {
 		float baseDamage;
 		switch (attack.getAttackType()) {
@@ -91,6 +115,12 @@ public class Combat {
 		attack.setDamage(Math.round(baseDamage));
 	}
 
+	/*
+		Method: createMonsterAttack
+		Description: Get damage output and type of monster and return the Attack object
+		Input: Monster object
+		Output: MonsterAttack object
+	*/
 	private MonsterAttack createMonsterAttack(Monster monster) {
 		var topStat = monster.getStats()
 			.entrySet()

@@ -78,6 +78,11 @@ import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionRemov
 import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
+/*
+	Class: Myra
+	Description: Main Discord bot that handles Discord interactions
+	Parent class: ListenerAdapter
+*/
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class Myra extends ListenerAdapter {
@@ -107,6 +112,10 @@ public class Myra extends ListenerAdapter {
 	private final Map<String, ScheduledFuture<?>> combatFutures = new HashMap<>();
 //</editor-fold>
 
+	/*
+		Method: setup
+		Description: Initializes Event Listeners
+	*/
 	@PostConstruct
 	private void setup() {
 		discord.addEventListener(this);
@@ -122,15 +131,31 @@ public class Myra extends ListenerAdapter {
 		commands.put(".alert", AlertCommand::withArgs);
 	}
 
+	/*
+		Method: destroy
+		Description: Stops all combat
+	*/
 	@PreDestroy
 	private void destroy() {
 		combatThreadPool.shutdownNow();
 	}
 
+	/*
+		Method: schedule
+		Description: Schedule something to happen in the future
+		Input: Runnable object to be executed, Integer for how many seconds to wait
+		Output: ScheduledFuture object that contains item that's scheduled
+	*/
 	private ScheduledFuture<?> schedule(Runnable r, int timeSeconds) {
 		return schedule(r, timeSeconds, () -> {});
 	}
 
+	/*
+		Method: schedule
+		Description: Schedule something to happen in the future
+		Input: Runnable object to be executed, Integer for how many seconds to wait, Runnable object that occurs on failure
+		Output: ScheduledFuture object that contains item that's scheduled to occur with fail function
+	*/
 	private ScheduledFuture<?> schedule(Runnable r, int timeSeconds, Runnable onFailure) {
 		Runnable wrapped = () -> {
 			try {
@@ -142,7 +167,12 @@ public class Myra extends ListenerAdapter {
 		};
 		return combatThreadPool.schedule(wrapped, timeSeconds, SECONDS);
 	}
-
+	
+	/*
+		Method: joinGuild
+		Description: Start combat in the provided Guild
+		Input: Guild object to handle combat
+	*/
 	private void joinGuild(Guild guild) {
 		scheduleCombat(guild);
 
@@ -157,6 +187,12 @@ public class Myra extends ListenerAdapter {
 						guild.getController().removeSingleRoleFromMember(member, grindingRole).queue()));
 	}
 
+	/*
+		Method: getEligibleChannels
+		Description: Retrieve channels eligible for provided Guild
+		Input: Guild object
+		Output: List of eligible TextChannels
+	*/
 	private List<TextChannel> getEligibleChannels(Guild guild) {
 		Member myraMember = guild.getSelfMember();
 		Set<String> combatChannels = service.getGuildSettings(guild.getId())
@@ -173,6 +209,11 @@ public class Myra extends ListenerAdapter {
 			.collect(toList());
 	}
 
+	/*
+		Method: onReady
+		Description: Overloaded function. Performs event when ready.
+		Input: Event to process when ready.
+	*/
 	@Override
 	public void onReady(ReadyEvent event) {
 		event.getJDA()
@@ -182,18 +223,33 @@ public class Myra extends ListenerAdapter {
 		log.info("Ready!");
 	}
 
+	/*
+		Method: onGuildLeave
+		Description: Execute provide event when leaving Guild
+		Input: Event that executes on leaving Guild
+	*/
 	@Override
 	public void onGuildLeave(GuildLeaveEvent event) {
 		String guildId = event.getGuild().getId();
 		combats.remove(guildId);
 	}
 
+	/*
+		Method: onGuildJoin
+		Description: Execute provided event when joining Guild
+		Input: Event that executes on joining Guild
+	*/
 	@Override
 	public void onGuildJoin(GuildJoinEvent event) {
 		Guild guild = event.getGuild();
 		joinGuild(guild);
 	}
 
+	/*
+		Method: onGuildMemberJoin
+		Description: Execute event when Guild Member joins. Skips if bot.
+		Input: Event that executes on Guild Member joining
+	*/
 	@Override
 	public void onGuildMemberJoin(GuildMemberJoinEvent event) {
 		Member member = event.getMember();
@@ -209,6 +265,11 @@ public class Myra extends ListenerAdapter {
 			.queue();
 	}
 
+	/*
+		Method: onGuildMessageReactionAdd
+		Description: Handles users reacting to combat messages
+		Input: Event of reaction
+	*/
 	@Override
 	public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event) {
 		Combat combat = getCombatForReaction(event);
@@ -224,6 +285,11 @@ public class Myra extends ListenerAdapter {
 		runCommand(command, null, event.getUser(), event.getMember());
 	}
 
+	/*
+		Method: onGuildMessageReactionRemove
+		Description: Handle users remove reaction to combat messages
+		Input: Event of removing reaction
+	*/
 	@Override
 	public void onGuildMessageReactionRemove(GuildMessageReactionRemoveEvent event) {
 		Combat combat = getCombatForReaction(event);
@@ -238,6 +304,11 @@ public class Myra extends ListenerAdapter {
 		updateCombatMessage(combat);
 	}
 
+	/*
+		Method: getCombatForReaction
+		Description: Retrieve combat for provided reaction
+		Input: Event that executes on leaving
+	*/
 	private Combat getCombatForReaction(GenericGuildMessageReactionEvent event) {
 		if (event.getUser().isBot()) {
 			return null;
@@ -257,6 +328,12 @@ public class Myra extends ListenerAdapter {
 		return combat;
 	}
 
+	/*
+		Method: getCommandForEmoji
+		Description: Return List with the emoji to command mapping
+		Input: ReactionEmote object chosen
+		Output: List contains action performed
+	*/
 	private List<String> getCommandForEmoji(ReactionEmote emote) {
 		switch (emote.getName()) {
 			case ATTACK_EMOJI:
@@ -270,16 +347,31 @@ public class Myra extends ListenerAdapter {
 		}
 	}
 
+	/*
+		Method: onPrivateMessageReceived
+		Description: Handle private message received
+		Input: Event of private message received
+	*/
 	@Override
 	public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
 		handleCommand(event.getMessage(), event.getAuthor(), null);
 	}
 
+	/*
+		Method: onGuildMessageReceived
+		Description: Handles Guild Message received
+		Input: GuildMessageReceivedEvent object
+	*/
 	@Override
 	public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
 		handleCommand(event.getMessage(), event.getAuthor(), event.getMember());
 	}
 
+	/*
+		Method: handleCommand
+		Description: Handle the provided command
+		Input: Message object, User originator object, Member object
+	*/
 	private void handleCommand(Message message, User author, Member member) {
 		String content = message.getContentDisplay();
 
@@ -295,6 +387,11 @@ public class Myra extends ListenerAdapter {
 		runCommand(splitCommand, message, author, member);
 	}
 
+	/*
+		Method: runCommand
+		Description: Executes the provided command
+		Input: List with commands, Message object, User originator object, Member object
+	*/
 	private void runCommand(
 		List<String> splitCommand,
 		Message message,
@@ -308,6 +405,11 @@ public class Myra extends ListenerAdapter {
   /**********
 	 * COMBAT
    *********/
+   	/*
+		Method: scheduleCombat
+		Description: Start combat for provided guild
+		Input: Guild object
+	*/
 	private void scheduleCombat(Guild guild) {
 		String guildId = guild.getId();
 		if (combats.containsKey(guildId)) {
@@ -325,14 +427,29 @@ public class Myra extends ListenerAdapter {
 			});
 	}
 
+   	/*
+		Method: getWaitTime
+		Description: Get randomized wait time
+		Output: Integer with randomized wait time
+	*/
 	private int getWaitTime() {
 		return RAND.nextInt(COMBAT_WAIT_UPPER - COMBAT_WAIT_LOWER) + COMBAT_WAIT_LOWER;
 	}
 
+   	/*
+		Method: combatSchedule
+		Description: Schedule next combat
+		Input: String with Guild ID, Runnable object, Integer for time in future, Runnable object for failure
+	*/
 	private void combatSchedule(String guildId, Runnable r, int timeSeconds, Runnable onFailure) {
 		combatFutures.put(guildId, schedule(r, timeSeconds, onFailure));
 	}
 
+   	/*
+		Method: startCombat
+		Description: Initiate combat for the provided guild
+		Input: String with Guild ID
+	*/
 	private void startCombat(String guildId) {
 		Guild guild = discord.getGuildById(guildId);
 
@@ -394,6 +511,11 @@ public class Myra extends ListenerAdapter {
 				});
 	}
 
+   	/*
+		Method: combatRound
+		Description: Handle the round for current combat
+		Input: Combat object
+	*/
 	private void combatRound(Combat combat) {
 		synchronized (combat) {
 			Message prevMessage = combat.getMessage();
@@ -423,6 +545,11 @@ public class Myra extends ListenerAdapter {
 		}
 	}
 
+   	/*
+		Method: getCombatEmbed
+		Description: Generate message to embed into combat channel, complete round results
+		Input: Combat object
+	*/
 	private MessageEmbed getCombatEmbed(Combat combat) {
 		Monster monster = combat.getMonster();
 		String combatants = combat.getCurrentRound()
@@ -459,6 +586,11 @@ public class Myra extends ListenerAdapter {
 		return embed;
 	}
 
+   	/*
+		Method: nextCombatRound
+		Description: Handle combat for next round
+		Input: Combat object
+	*/
 	private void nextCombatRound(Combat combat) {
 		log.info("Resolving combat in {} round {}", combat.getGuild().getName(), combat.getCurrentRound().getNumber());
 		synchronized (combat) {
@@ -475,6 +607,11 @@ public class Myra extends ListenerAdapter {
 		}
 	}
 
+   	/*
+		Method: endCombat
+		Description: Handles end of combat
+		Input: Combat object
+	*/
 	private void endCombat(Combat combat) {
 		synchronized (combat) {
 			Message prevMessage = combat.getMessage();
@@ -518,6 +655,11 @@ public class Myra extends ListenerAdapter {
 		}
 	}
 
+   	/*
+		Method: escapeCombat
+		Description: Handle monster escaping combat
+		Input: Combat object
+	*/
 	private void escapeCombat(Combat combat) {
 		synchronized (combat) {
 			Message prevMessage = combat.getMessage();
@@ -541,6 +683,11 @@ public class Myra extends ListenerAdapter {
 		}
 	}
 
+   	/*
+		Method: cancelCombat
+		Description: Stops combat
+		Input: String with Guild ID
+	*/
 	public void cancelCombat(String guildId) {
 		var combat = combats.remove(guildId);
 		if (combat != null) {
@@ -551,12 +698,22 @@ public class Myra extends ListenerAdapter {
 		}
 	}
 
+   	/*
+		Method: resetCharHp
+		Description: Restores every combat participant to full HP
+		Input: Combat object
+	*/
 	private void resetCharHp(Combat combat) {
 		combat.getParticipants()
 			.values()
 			.forEach((character) -> character.setHpCurrent(character.getHpMax()));
 	}
 
+   	/*
+		Method: forceCombat
+		Description: Stops current combat, then start a new combat
+		Input: String with Guild ID
+	*/
 	public void forceCombat(String guildId) {
 		cancelCombat(guildId); // Prevent double-scheduling
 		startCombat(guildId);
@@ -565,11 +722,22 @@ public class Myra extends ListenerAdapter {
 	/******************
 	 * COMMAND HELPERS
 	 *****************/
-
+   	/*
+		Method: getCombat
+		Description: Retrieve combat for current member
+		Input: Member object
+		Output: Combat object
+	*/
 	public Combat getCombat(Member member) {
 		return combats.get(member.getGuild().getId());
 	}
 
+   	/*
+		Method: getMember
+		Description: Retrieve member object for current user
+		Input: User object
+		Output: Member object
+	*/
 	public Member getMember(User user) {
 		return user.getMutualGuilds()
 			.stream()
@@ -578,6 +746,11 @@ public class Myra extends ListenerAdapter {
 			.orElse(null);
 	}
 
+   	/*
+		Method: updateCombatMessage
+		Description: Alter combat message with update
+		Input: Combat object
+	*/
 	public void updateCombatMessage(Combat combat) {
 		synchronized (combat) {
 			MessageEmbed combatEmbed = getCombatEmbed(combat);
@@ -587,6 +760,11 @@ public class Myra extends ListenerAdapter {
 		}
 	}
 
+   	/*
+		Method: getBaseUrl
+		Description: Return base URL
+		Output: String with baseURL
+	*/
 	public String getBaseUrl() {
 		return baseUrl;
 	}
@@ -594,16 +772,34 @@ public class Myra extends ListenerAdapter {
 	/******************
 	 * API HELPERS
 	 *****************/
+	/*
+		Method: isAdmin
+		Description: Determines if Member is an admin
+		Input: Member object
+		Output: Boolean on if member is an admin
+	*/
 	public boolean isAdmin(Member member) {
 		return member.getRoles()
 			.stream()
 			.anyMatch((role) -> role.hasPermission(ADMINISTRATOR));
 	}
 
+	/*
+		Method: getUser
+		Description: Retrieve user based on UID
+		Input: String with UID
+		Output: User object
+	*/
 	public User getUser(String uid) {
 		return discord.getUserById(uid);
 	}
 
+	/*
+		Method: getAdminGuilds
+		Description: Retrieve any admin guilds associated with current User
+		Input: User object
+		Output: Mapping with related Admin Guilds
+	*/
 	public Map<String, Guild> getAdminGuilds(User user) {
 		return user.getMutualGuilds()
 			.stream()
@@ -611,6 +807,12 @@ public class Myra extends ListenerAdapter {
 			.collect(toMap(Guild::getId, identity()));
 	}
 
+	/*
+		Method: getNextCombats
+		Description: Retrieve any combats upcoming for the provided Guilds
+		Input: Collection of Guild objects
+		Output: Mapping with related combats
+	*/
 	public Map<String, String> getNextCombats(Collection<Guild> guilds) {
 		return guilds.stream()
 			.map(Guild::getId)
@@ -621,10 +823,20 @@ public class Myra extends ListenerAdapter {
 					.atZone(UTC))));
 	}
 
+	/*
+		Method: register
+		Description: Registers current user to the game
+		Input: String with User ID
+	*/
 	public void register(String userId) {
 		runCommand(singletonList(".register"), null, getUser(userId), null);
 	}
 
+	/*
+		Method: scheduleGrinding
+		Description: Schedules time grinding for user
+		Input: Member object, Integer with hours for grinding
+	*/
 	public void scheduleGrinding(Member member, int numHours) {
 		schedule(() -> member.getRoles()
 			.stream()

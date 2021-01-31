@@ -8,6 +8,10 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
 
+/*
+	Class: StatConfig
+	Description: Provides stat values
+*/
 @Value
 @Builder
 public class StatConfig

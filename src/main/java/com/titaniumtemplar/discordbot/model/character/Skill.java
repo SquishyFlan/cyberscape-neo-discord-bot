@@ -3,6 +3,10 @@ package com.titaniumtemplar.discordbot.model.character;
 import lombok.Builder;
 import lombok.Data;
 
+/*
+	Class: Skill
+	Description: Object with details of skill
+*/
 @Data
 @Builder
 public class Skill {
@@ -20,6 +24,11 @@ public class Skill {
 	private boolean spec2Available;
 	private int nextSpec2RankCost;
 
+	/*
+		Method: apply
+		Description: Applies other skill to this skill
+		Input: Skill object
+	*/
 	public void apply(Skill diff) {
 		ranks += diff.getRanks();
 		spec1Ranks += diff.getSpec1Ranks();

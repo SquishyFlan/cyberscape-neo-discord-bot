@@ -27,6 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("admin/api")
+/*
+	Class: AdminApiController
+	Description: Establishes a baseline for Admin API Access
+*/
 public class AdminApiController {
 
 	@Inject
@@ -35,6 +39,11 @@ public class AdminApiController {
 	@Inject
 	CyberscapeService service;
 
+	/*
+		Method: forceCombat
+		Description: Initiate combat in channel
+		Input: Authentication object, 2D Map GID object
+	*/
 	@PostMapping("forceCombat")
 	void forceCombat(Authentication auth, @RequestBody Map<String, String> gidObj) {
 		String gid = gidObj.values().stream().findFirst().get();
@@ -49,6 +58,12 @@ public class AdminApiController {
 		myra.forceCombat(gid);
 	}
 
+	/*
+		Method: checkCharStats
+		Description: Evaluates Character's stats
+		Input: Character Skills Update object, Authentication object
+		Output: Evaluation of character's skill
+	*/
 	@PostMapping("statCheck")
 	public CharStats checkCharStats(@RequestBody CharSkillsUpdate charSkills, Authentication auth) {
 		checkAnyGuildAdmin(auth);
@@ -60,6 +75,12 @@ public class AdminApiController {
 		return service.checkStats(uid, charSkills, true);
 	}
 
+	/*
+		Method: loadCharacter
+		Description: Loads character
+		Input: UID String, Authentication object
+		Output: Character Stats object
+	*/
 	@GetMapping("character/{uid}")
 	public CharStats loadCharacter(@PathVariable String uid, Authentication auth) {
 		checkAnyGuildAdmin(auth);
@@ -71,6 +92,11 @@ public class AdminApiController {
 		}
 	}
 
+	/*
+		Method: updateCharacter
+		Description: Updates the given character
+		Input: Character Skills Update object, Authentication object
+	*/
 	@PutMapping("character")
 	@ResponseStatus(NO_CONTENT)
 	public void updateCharacter(@RequestBody CharSkillsUpdate charSkills, Authentication auth) {
@@ -83,6 +109,11 @@ public class AdminApiController {
 		service.updateCharSkills(uid.toLowerCase(), charSkills, true);
 	}
 
+	/*
+		Method: checkAnyGuildAdmin
+		Description: Evaulate if user is a Guild Admin
+		Input: Authentication object
+			*/
 	private void checkAnyGuildAdmin(Authentication auth) throws AccessDeniedException {
 		OAuth2User principal = (OAuth2User) auth.getPrincipal();
 		String userId = (String) principal.getAttributes().get("id");

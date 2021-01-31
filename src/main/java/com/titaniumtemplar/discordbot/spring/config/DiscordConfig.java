@@ -12,6 +12,10 @@ import org.springframework.context.annotation.Configuration;
 import static java.util.concurrent.Executors.newScheduledThreadPool;
 import static net.dv8tion.jda.core.AccountType.BOT;
 
+/*
+	Class: DiscordConfig
+	Description: Utility functions for Discord operations
+*/
 @Configuration
 public class DiscordConfig {
 
@@ -28,6 +32,12 @@ public class DiscordConfig {
 	    .build();
   }
 
+	/*
+		Method: myra
+		Description: Creates a new Myra after connecting services and JDA
+		Input: CyberscapeService object, JDA for discord
+		Output: New Myra - Devoid of emotions and memories
+	*/
   @Bean
   Myra myra(CyberscapeService service, JDA discord) {
     ScheduledExecutorService combatThreadPool = newScheduledThreadPool(

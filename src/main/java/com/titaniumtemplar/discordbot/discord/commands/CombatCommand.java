@@ -16,8 +16,17 @@ import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 
+/*
+	Class: CombatCommand
+	Description: Command class that handles combat commands
+*/
 public abstract class CombatCommand implements DiscordCommand {
 
+	/*
+		Method: run
+		Description: Handles Commands relating to combat
+		Input: CyberscapeService object, Myra object, Message object, User object, Member object
+	*/
 	@Override
 	public void run(
 		CyberscapeService service,
@@ -76,6 +85,11 @@ public abstract class CombatCommand implements DiscordCommand {
 		}
 	}
 
+	/*
+		Method: getSpecialization
+		Description: Retrieves this funciton's specialization
+		Output: Specialization object
+	*/
 	private Specialization getSpecialization() {
 		List<String> splitCommand = getCommand();
 		if (splitCommand.size() < 2) {
@@ -84,9 +98,21 @@ public abstract class CombatCommand implements DiscordCommand {
 		return Specialization.fromString(splitCommand.get(1));
 	}
 
+	/*
+		Method: getCommand
+		Description: Abstract function that returns current command
+	*/
 	protected abstract List<String> getCommand();
 
+	/*
+		Method: getAttackType
+		Description: Abstract function that returns current attack type
+	*/
 	protected abstract AttackType getAttackType();
 
+	/*
+		Method: getCommand
+		Description: Abstract function that returns if this can be specialized
+	*/
 	protected abstract boolean canSpecialize();
 }

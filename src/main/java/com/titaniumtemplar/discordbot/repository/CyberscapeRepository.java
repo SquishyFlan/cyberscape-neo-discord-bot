@@ -48,6 +48,10 @@ import org.jooq.Table;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+/*
+	Class: CyberscapeRepository
+	Description: Handles connecting to database
+*/
 @Repository
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
 public class CyberscapeRepository {
@@ -57,6 +61,11 @@ public class CyberscapeRepository {
 	private static final com.titaniumtemplar.db.jooq.tables.Character C_EXCLUDED = CHARACTER.as("excluded");
 	private static final CharacterSkill CS_EXCLUDED = CHARACTER_SKILL.as("excluded");
 
+	/*
+		Method: bulkInsert
+		Description: Update table with multiple records
+		Input: List of records, Table of records, DSLConect object with database connection
+	*/
 	private static <R extends Record> void bulkInsert(List<R> recordList, Table<R> table, DSLContext dbConnection) {
 		if (recordList.isEmpty()) {
 			return;
@@ -70,6 +79,11 @@ public class CyberscapeRepository {
 			.execute();
 	}
 
+	/*
+		Method: getStatConfig
+		Description: Retrieve stat configurations from database
+		Output: StatConfig object
+	*/
 	public StatConfig getStatConfig() {
 		StatConfigBuilder statConfigBuilder = StatConfig.builder();
 
@@ -113,6 +127,12 @@ public class CyberscapeRepository {
 		return statConfigBuilder.build();
 	}
 
+	/*
+		Method: getCharacter
+		Description: Return stats for provided Character ID
+		Input: String object with user ID
+		Output: CharStats
+	*/
 	public CharStats getCharacter(String uid) {
 		return db.selectFrom(CHARACTER)
 			.where(CHARACTER.USER_ID.eq(uid))
@@ -120,6 +140,12 @@ public class CyberscapeRepository {
 			.orElseThrow(NoSuchCharacterException::new);
 	}
 
+	/*
+		Method: createCharacter
+		Description: Make a new character
+		Input: String object with user ID, String object with User Name
+		Output: CharStats object
+	*/
 	@Transactional
 	public CharStats createCharacter(String uid, String name) {
 		CharacterRecord newChar = db.newRecord(CHARACTER);
@@ -152,6 +178,12 @@ public class CyberscapeRepository {
 		return mapCharacter(newChar, skillRecords);
 	}
 
+	/*
+		Method: mapCharacter
+		Description: Returns CharStats from DB for provided CharacterRecord
+		Input: CharacterRecord object
+		Output: CharStats object
+	*/
 	private CharStats mapCharacter(CharacterRecord record) {
 
 		Result<CharacterSkillRecord> skillRecords = db.selectFrom(CHARACTER_SKILL)
@@ -161,6 +193,12 @@ public class CyberscapeRepository {
 		return mapCharacter(record, skillRecords);
 	}
 
+	/*
+		Method: getStatConfig
+		Description: Returns CharStats from DB for provided records
+		Input: CharacterRecord object, Collection of CharacterSkillRecords
+		Output: CharStats object
+	*/
 	private CharStats mapCharacter(
 		CharacterRecord record,
 		Collection<CharacterSkillRecord> skillRecords) {
@@ -189,6 +227,11 @@ public class CyberscapeRepository {
 		return cs;
 	}
 
+	/*
+		Method: updateCharacters
+		Description: Update the database with the provided characters
+		Input: Collection of CharStats
+	*/
 	@Transactional
 	public void updateCharacters(
 		Collection<CharStats> characters) {
@@ -229,6 +272,12 @@ public class CyberscapeRepository {
 			.execute();
 	}
 
+	/*
+		Method: getGuildSettings
+		Description: Retrieve GuildSettings object for provided Guild ID
+		Input: String object with guild ID
+		Output: GuildSettings object
+	*/
 	public GuildSettings getGuildSettings(String guildId) {
 		GuildSettings.GuildSettingsBuilder builder = db.selectFrom(GUILD_SETTINGS)
 			.where(GUILD_SETTINGS.GUILD_ID.eq(guildId))
@@ -243,6 +292,12 @@ public class CyberscapeRepository {
 		return builder.build();
 	}
 
+	/*
+		Method: mapRecord
+		Description: Given CharStats, return a CharacterRecord, created from the database
+		Input: CharStats object
+		Output: CharacterRecord object
+	*/
 	private CharacterRecord mapRecord(CharStats c) {
 		CharacterRecord r = db.newRecord(CHARACTER);
 
@@ -257,6 +312,12 @@ public class CyberscapeRepository {
 		return r;
 	}
 
+	/*
+		Method: mapSkillRecords
+		Description: Given CharStats, create a new skill record in the database and return it.
+		Input: CharStats object
+		Output: Stream of CharacterSkillRecords
+	*/
 	private Stream<CharacterSkillRecord> mapSkillRecords(CharStats c) {
 
 		return Arrays.stream(SkillType.values())
@@ -277,6 +338,11 @@ public class CyberscapeRepository {
 			});
 	}
 
+	/*
+		Method: getMonsters
+		Description: Retrieves list of monsters from the database
+		Output: List of MonsterTemplate
+	*/
 	public List<MonsterTemplate> getMonsters() {
 		Map<UUID, Result<MonsterSkillRecord>> skills = db.selectFrom(MONSTER_SKILL)
 			.fetchGroups(MONSTER_SKILL.MONSTER_ID);
@@ -285,6 +351,12 @@ public class CyberscapeRepository {
 			.fetch((r) -> mapMonster(r, skills));
 	}
 
+	/*
+		Method: mapMonster
+		Description: Creates mapping for monster based on MonsterRecord
+		Input: MonsterRecord object, Mapping of UUIDs and Results of MonsterSkillRecord
+		Output: MonsterTemplate object
+	*/
 	private MonsterTemplate mapMonster(
 		MonsterRecord record,
 		Map<UUID, Result<MonsterSkillRecord>> skills) {
@@ -301,6 +373,12 @@ public class CyberscapeRepository {
 		return builder.build();
 	}
 
+	/*
+		Method: mapSkill
+		Description: Retrieve skill record from MonsterSkillRecord
+		Input: MonsterSkillRecord
+		Output: Skill object
+	*/
 	private Skill mapSkill(MonsterSkillRecord r) {
 		return Skill.builder()
 			.ranks(r.getRanks())
@@ -311,6 +389,11 @@ public class CyberscapeRepository {
 			.build();
 	}
 
+	/*
+		Method: addCombatChannel
+		Description: Given gid and channelId, add to database that the channel can do combat
+		Input: String object with gid, String object with channelId
+	*/
 	public void addCombatChannel(String gid, String channelId) {
 		GuildCombatChannelsRecord gcc = db.newRecord(GUILD_COMBAT_CHANNELS);
 		gcc.setGuildId(gid);
@@ -318,6 +401,11 @@ public class CyberscapeRepository {
 		gcc.insert();
 	}
 
+	/*
+		Method: removeCombatChannel
+		Description: Removes listed channel from combat in database
+		Input: String object with gid, String object with channelId
+	*/
 	public void removeCombatChannel(String gid, String channelId) {
 		db.deleteFrom(GUILD_COMBAT_CHANNELS)
 			.where(

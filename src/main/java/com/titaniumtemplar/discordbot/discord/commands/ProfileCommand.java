@@ -12,11 +12,20 @@ import net.dv8tion.jda.core.entities.Member;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 
+/*
+	Class: ProfileCommand
+	Description: Command for Profile interaction
+*/
 @RequiredArgsConstructor(staticName = "withArgs")
 public class ProfileCommand implements DiscordCommand {
 
 	private final List<String> splitCommand;
 
+	/*
+		Method: run
+		Description: Handles profile commands
+		Input: CyberscapeService object, Myra object, Message object, User object, Member object
+	*/
 	@Override
 	public void run(
 		CyberscapeService service,
